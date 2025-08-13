@@ -1,5 +1,5 @@
 {
-  "name": "basilicom/pimcore-data-quality-bundle",
+  "name": "portadesign/pimcore-data-quality-bundle",
   "license": "GPL-3.0-or-later",
   "type": "pimcore-bundle",
   "description": "Data Quality Bundle for Pimcore",
