@@ -14,7 +14,7 @@ one- or multiple quality values are computed and stored in data objects.
 | &gt;= 3.0      | ^8.0 | ^11.0   |
 
 ## Installation
-1. Require the bundle using ``composer require basilicom/pimcore-data-quality-bundle``
+1. Require the bundle using ``composer require portadesign/pimcore-data-quality-bundle``
 3. Enable the bundle ``bin/console pimcore:bundle:enable DataQualityBundle``
 3. Install the bundle ``bin/console pimcore:bundle:install DataQualityBundle``
 
@@ -84,7 +84,7 @@ bin/console dataquality:update <quality-config-id> <batch-size>
 
 ### Grid View
 * You can use the "Operator PHP Code" 
-   * ``Basilicom\DataQualityBundle\GridOperator\Quality`` on a Data Quality (number) field 
+   * ``Portadesign\DataQualityBundle\GridOperator\Quality`` on a Data Quality (number) field 
    ![](documentation/grid-view-setting.jpg)
    * to get color-coded (red to green) percentages
    ![](documentation/grid-view.jpg)
@@ -94,6 +94,7 @@ bin/console dataquality:update <quality-config-id> <batch-size>
 
 **Authors:** 
 
+* Portadesign Team
 * Conrad Guelzow (Basilicom GmbH)
 * Kerstin Gerull (Basilicom GmbH)
 * Christoph Luehr (Basilicom GmbH)
