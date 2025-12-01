@@ -11,7 +11,7 @@ class DefinitionsCollection
 {
     public function __construct(
         #[TaggedIterator('data_quality.definition')]
-        private readonly iterable $definitions
+        private readonly iterable $definitions,
     ) {}
 
     /**

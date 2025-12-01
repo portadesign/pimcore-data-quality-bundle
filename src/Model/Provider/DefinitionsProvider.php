@@ -10,7 +10,7 @@ use Pimcore\Model\DataObject\ClassDefinition\DynamicOptionsProvider\SelectOption
 class DefinitionsProvider implements SelectOptionsProviderInterface
 {
     public function __construct(
-        private readonly DefinitionsCollection $definitionsCollection
+        private readonly DefinitionsCollection $definitionsCollection,
     ) {}
 
     public function getOptions($context, $fieldDefinition): array

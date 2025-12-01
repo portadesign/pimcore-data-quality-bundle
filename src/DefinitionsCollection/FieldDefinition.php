@@ -14,7 +14,7 @@ class FieldDefinition
         protected string $title,
         protected int $weight,
         protected array $parameters,
-        protected ?string $language = null
+        protected ?string $language = null,
     ) {}
 
     /**

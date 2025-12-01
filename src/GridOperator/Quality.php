@@ -12,7 +12,7 @@ class Quality extends AbstractOperator
 {
     private array $colorPalette = ['#FFA0A0', '#FFD098', '#ffff90', '#C8FF90', '#90ff90'];
 
-    public function __construct(stdClass $config, array $context = [])
+    public function __construct(stdClass $config, array $context = [],)
     {
         parent::__construct($config, $context);
     }

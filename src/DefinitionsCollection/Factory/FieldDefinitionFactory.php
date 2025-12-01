@@ -14,7 +14,7 @@ class FieldDefinitionFactory
     const DEFAULT_GROUP = '__default__';
 
     public function __construct(
-        private readonly ContainerInterface $container
+        private readonly ContainerInterface $container,
     ) {}
 
     public function get(DataQualityFieldDefinition $definition): FieldDefinition

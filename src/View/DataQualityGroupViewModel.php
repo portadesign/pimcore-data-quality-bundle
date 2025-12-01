@@ -9,7 +9,7 @@ class DataQualityGroupViewModel
     /** @var DataQualityFieldViewModel[] */
     public function __construct(
         private string $name,
-        private array $fields
+        private array $fields,
     ) {}
 
     /**

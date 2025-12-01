@@ -22,7 +22,7 @@ class DataQualityController extends FrontendController
 {
     public function __construct(
         private readonly DataQualityService $dataQualityService,
-        private readonly Translator $translator
+        private readonly Translator $translator,
     ) {}
 
     /**

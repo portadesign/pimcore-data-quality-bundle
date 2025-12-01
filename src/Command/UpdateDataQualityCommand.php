@@ -31,7 +31,7 @@ class UpdateDataQualityCommand extends AbstractCommand
     private int $batchSize = 100;
 
     public function __construct(
-        private readonly DataQualityService $dataQualityService
+        private readonly DataQualityService $dataQualityService,
     ) {
         parent::__construct();
     }

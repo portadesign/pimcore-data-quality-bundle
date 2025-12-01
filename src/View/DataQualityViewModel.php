@@ -12,7 +12,7 @@ class DataQualityViewModel
     public function __construct(
         private string $title,
         private int $percentage,
-        private array $groups
+        private array $groups,
     ) {}
 
     /**

@@ -21,7 +21,7 @@ class Installer extends SettingsStoreAwareInstaller
     private string $installSourcesPath;
 
     public function __construct(
-        BundleInterface $bundle
+        BundleInterface $bundle,
     ) {
         $this->installSourcesPath = __DIR__ . '/../Resources/install';
         parent::__construct($bundle);

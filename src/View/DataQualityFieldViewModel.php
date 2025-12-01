@@ -11,7 +11,7 @@ class DataQualityFieldViewModel
         private int $weight,
         private bool $valid,
         private ?string $language = null,
-        private ?array $data = null
+        private ?array $data = null,
     ) {}
 
     /**

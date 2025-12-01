@@ -12,7 +12,7 @@ use Pimcore\Model\DataObject\DataQualityConfig;
 class DataQualityService
 {
     public function __construct(
-        private readonly DataQualityProvider $dataQualityProvider
+        private readonly DataQualityProvider $dataQualityProvider,
     ) {}
 
     /**
