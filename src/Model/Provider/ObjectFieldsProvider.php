@@ -14,12 +14,9 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 class ObjectFieldsProvider implements SelectOptionsProviderInterface
 {
-    private TranslatorInterface $translator;
-
-    public function __construct(TranslatorInterface $translator)
-    {
-        $this->translator = $translator;
-    }
+    public function __construct(
+        private readonly TranslatorInterface $translator
+    ) {}
 
     public function getOptions($context, $fieldDefinition): array
     {

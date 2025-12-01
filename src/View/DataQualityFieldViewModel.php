@@ -6,20 +6,13 @@ namespace Basilicom\DataQualityBundle\View;
 
 class DataQualityFieldViewModel
 {
-    private string $name;
-    private int $weight;
-    private bool $valid;
-    private ?string $language;
-    private ?array $data;
-
-    public function __construct(string $name, int $weight, bool $valid, ?string $language = null, ?array $data = null)
-    {
-        $this->name        = $name;
-        $this->weight      = $weight;
-        $this->valid       = $valid;
-        $this->language    = $language;
-        $this->data        = $data;
-    }
+    public function __construct(
+        private string $name,
+        private int $weight,
+        private bool $valid,
+        private ?string $language = null,
+        private ?array $data = null
+    ) {}
 
     /**
      * @return string

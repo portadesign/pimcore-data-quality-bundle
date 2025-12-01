@@ -8,22 +8,14 @@ use Basilicom\DataQualityBundle\Contract\DefinitionInterface;
 
 class FieldDefinition
 {
-    protected DefinitionInterface $conditionClass;
-    protected string $fieldName;
-    protected string $title;
-    protected int $weight;
-    protected array $parameters;
-    protected ?string $language;
-
-    public function __construct(DefinitionInterface $conditionClass, string $fieldName, string $title, int $weight, array $parameters, ?string $language = null)
-    {
-        $this->conditionClass = $conditionClass;
-        $this->fieldName      = $fieldName;
-        $this->title          = $title;
-        $this->weight         = $weight;
-        $this->parameters     = $parameters;
-        $this->language       = $language;
-    }
+    public function __construct(
+        protected DefinitionInterface $conditionClass,
+        protected string $fieldName,
+        protected string $title,
+        protected int $weight,
+        protected array $parameters,
+        protected ?string $language = null
+    ) {}
 
     /**
      * @return DefinitionInterface

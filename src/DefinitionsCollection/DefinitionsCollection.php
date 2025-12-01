@@ -9,19 +9,10 @@ use Symfony\Component\DependencyInjection\Attribute\TaggedIterator;
 
 class DefinitionsCollection
 {
-    /**
-     * @var iterable<DefinitionInterface>
-     */
-    private iterable $definitions;
-
-    /**
-     * @param iterable<DefinitionInterface> $definitions
-     */
     public function __construct(
-        #[TaggedIterator('data_quality.definition')] iterable $definitions
-    ) {
-        $this->definitions = $definitions;
-    }
+        #[TaggedIterator('data_quality.definition')]
+        private readonly iterable $definitions
+    ) {}
 
     /**
      * @return array<string, string> Array mapping definition name to class name

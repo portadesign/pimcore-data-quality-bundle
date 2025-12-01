@@ -9,8 +9,7 @@ final class ValidationResultBag
     public function __construct(
         private bool $valid,
         private array $data = []
-    ) {
-    }
+    ) {}
 
     public function isValid(): bool
     {

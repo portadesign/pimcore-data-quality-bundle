@@ -22,12 +22,9 @@ use Pimcore\Tool;
 
 final class DataQualityProvider
 {
-    private FieldDefinitionFactory $fieldDefinitionFactory;
-
-    public function __construct(FieldDefinitionFactory $fieldDefinitionFactory)
-    {
-        $this->fieldDefinitionFactory = $fieldDefinitionFactory;
-    }
+    public function __construct(
+        private readonly FieldDefinitionFactory $fieldDefinitionFactory
+    ) {}
 
     private function setDataQualityPercent(AbstractObject $dataObject, array $groups, string $fieldName): int
     {

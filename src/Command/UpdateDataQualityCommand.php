@@ -30,13 +30,9 @@ class UpdateDataQualityCommand extends AbstractCommand
 
     private int $batchSize = 100;
 
-    private DataQualityService $dataQualityService;
-
     public function __construct(
-        DataQualityService $dataQualityService
+        private readonly DataQualityService $dataQualityService
     ) {
-        $this->dataQualityService = $dataQualityService;
-
         parent::__construct();
     }
 
@@ -96,7 +92,7 @@ class UpdateDataQualityCommand extends AbstractCommand
     {
         $batchNumber = 1;
         do {
-            $commandPrefix = 'env php '. realpath(PIMCORE_PROJECT_ROOT.DIRECTORY_SEPARATOR . 'bin' . DIRECTORY_SEPARATOR.'console');
+            $commandPrefix = 'env php ' . realpath(PIMCORE_PROJECT_ROOT . DIRECTORY_SEPARATOR . 'bin' . DIRECTORY_SEPARATOR . 'console');
             chdir(PIMCORE_PROJECT_ROOT);
 
             $consoleCommand = $this->getName()
