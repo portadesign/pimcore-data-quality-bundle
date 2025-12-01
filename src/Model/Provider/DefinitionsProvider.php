@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Basilicom\DataQualityBundle\Model\Provider;
 
 use Basilicom\DataQualityBundle\DefinitionsCollection\DefinitionsCollection;
@@ -7,10 +9,14 @@ use Pimcore\Model\DataObject\ClassDefinition\DynamicOptionsProvider\SelectOption
 
 class DefinitionsProvider implements SelectOptionsProviderInterface
 {
+    public function __construct(
+        private readonly DefinitionsCollection $definitionsCollection,
+    ) {}
+
     public function getOptions($context, $fieldDefinition): array
     {
         $options = [];
-        foreach (DefinitionsCollection::getAllTypes() as $definitionKey => $definitionClass) {
+        foreach ($this->definitionsCollection->getAllTypes() as $definitionKey => $definitionClass) {
             $options[] = [
                 'value' => $definitionClass,
                 'key'   => $definitionKey

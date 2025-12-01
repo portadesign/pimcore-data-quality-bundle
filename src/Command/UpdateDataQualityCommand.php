@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Basilicom\DataQualityBundle\Command;
 
 use Basilicom\DataQualityBundle\Exception\DataQualityException;
@@ -10,35 +12,33 @@ use Pimcore\Console\AbstractCommand;
 use Pimcore\Model\DataObject\AbstractObject;
 use Pimcore\Model\DataObject\ClassDefinition;
 use Pimcore\Model\DataObject\DataQualityConfig;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
+#[AsCommand(
+    name: 'dataquality:update',
+    description: 'Re-compute and update data quality on objects.',
+    aliases: ['dq:update']
+)]
 class UpdateDataQualityCommand extends AbstractCommand
 {
     const STOP_CHILD_PROCESS = 987;
 
-    protected static $defaultName        = 'dataquality:update';
-    protected static $defaultDescription = 'Re-compute and update data quality on objects.';
-
     private int $batchSize = 100;
 
-    private DataQualityService $dataQualityService;
-
     public function __construct(
-        DataQualityService $dataQualityService
+        private readonly DataQualityService $dataQualityService,
     ) {
-        $this->dataQualityService = $dataQualityService;
-
         parent::__construct();
     }
 
     protected function configure()
     {
         $this
-            ->setAliases(['dq:update'])
             ->addArgument(
                 'quality-config-id',
                 InputArgument::REQUIRED,
@@ -92,7 +92,7 @@ class UpdateDataQualityCommand extends AbstractCommand
     {
         $batchNumber = 1;
         do {
-            $commandPrefix = 'env php '. realpath(PIMCORE_PROJECT_ROOT.DIRECTORY_SEPARATOR . 'bin' . DIRECTORY_SEPARATOR.'console');
+            $commandPrefix = 'env php ' . realpath(PIMCORE_PROJECT_ROOT . DIRECTORY_SEPARATOR . 'bin' . DIRECTORY_SEPARATOR . 'console');
             chdir(PIMCORE_PROJECT_ROOT);
 
             $consoleCommand = $this->getName()

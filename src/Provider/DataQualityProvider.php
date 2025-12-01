@@ -1,12 +1,14 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Basilicom\DataQualityBundle\Provider;
 
-use Basilicom\DataQualityBundle\Definition\DefinitionException;
 use Basilicom\DataQualityBundle\DefinitionsCollection\Factory\FieldDefinitionFactory;
 use Basilicom\DataQualityBundle\DefinitionsCollection\FieldDefinition;
 use Basilicom\DataQualityBundle\Exception\DataQualityException;
+use Basilicom\DataQualityBundle\Exception\DefinitionException;
+use Basilicom\DataQualityBundle\Model\ValidationResultBag;
 use Basilicom\DataQualityBundle\View\DataQualityFieldViewModel;
 use Basilicom\DataQualityBundle\View\DataQualityGroupViewModel;
 use Basilicom\DataQualityBundle\View\DataQualityViewModel;
@@ -20,16 +22,13 @@ use Pimcore\Tool;
 
 final class DataQualityProvider
 {
-    private FieldDefinitionFactory $fieldDefinitionFactory;
-
-    public function __construct(FieldDefinitionFactory $fieldDefinitionFactory)
-    {
-        $this->fieldDefinitionFactory = $fieldDefinitionFactory;
-    }
+    public function __construct(
+        private readonly FieldDefinitionFactory $fieldDefinitionFactory,
+    ) {}
 
     private function setDataQualityPercent(AbstractObject $dataObject, array $groups, string $fieldName): int
     {
-        $countTotal    = 0;
+        $countTotal = 0;
         $countComplete = 0;
 
         /** @var DataQualityGroupViewModel $group */
@@ -41,13 +40,11 @@ final class DataQualityProvider
                 }
             }
         }
-        $value = (int) \round(($countComplete / $countTotal) * 100);
 
-        $setter = 'set' . \ucfirst($fieldName);
-        if (\method_exists(
-            $dataObject,
-            $setter
-        )) {
+        $value = (int) round(($countComplete / $countTotal) * 100);
+        $setter = 'set' . ucfirst($fieldName);
+
+        if (method_exists($dataObject, $setter)) {
             DataObjectVersion::disable();
 
             $dataObject->$setter((float) $value);
@@ -94,46 +91,44 @@ final class DataQualityProvider
             /** @var FieldDefinition $fieldDefinition */
             foreach ($dataQualityRuleGroup as $fieldDefinition) {
                 $getter = 'get' . $fieldDefinition->getFieldName();
+
                 if (!method_exists($dataObject, $getter)) {
                     continue;
                 }
 
-                $isLocalizedField     = false;
+                $isLocalizedField = false;
                 $classFieldDefinition = $this->getClassFieldDefinition(
                     $dataObject,
                     $fieldDefinition->getFieldName(),
                     $isLocalizedField
                 );
 
-                $validFields = [];
-                if ($this->isObjectBricks($classFieldDefinition)) {
-                    [$valid, $validFields] = $this->validateObjectBricks(
+                $result = match (true) {
+                    $this->isObjectBricks($classFieldDefinition) => $this->validateObjectBricks(
                         $dataObject,
                         $getter,
                         $fieldDefinition
-                    );
-                } elseif ($isLocalizedField) {
-                    [$valid, $validFields] = $this->validateLanguages(
+                    ),
+                    $isLocalizedField => $this->validateLanguages(
                         $dataObject,
                         $getter,
                         $fieldDefinition,
                         $classFieldDefinition
-                    );
-                } else {
-                    $value = $dataObject->$getter();
-                    $valid = $fieldDefinition->getConditionClass()->validate(
-                        $value,
-                        $classFieldDefinition,
-                        $fieldDefinition->getParameters()
-                    );
-                }
+                    ),
+                    default => $this->validateField(
+                        $dataObject,
+                        $getter,
+                        $fieldDefinition,
+                        $classFieldDefinition
+                    ),
+                };
 
                 $dataQualityFields[] = new DataQualityFieldViewModel(
                     $fieldDefinition->getTitle(),
                     $fieldDefinition->getWeight(),
-                    $valid,
+                    $result->isValid(),
                     $fieldDefinition->getLanguage(),
-                    $validFields
+                    $result->getData()
                 );
             }
 
@@ -155,13 +150,13 @@ final class DataQualityProvider
     private function getDataQualityRules(DataQualityConfig $dataQualityConfig): array
     {
         $fieldCollection = $dataQualityConfig->getDataQualityRules();
-        $items           = $fieldCollection->getItems();
+        $items = $fieldCollection->getItems();
 
         $rules = [];
 
         /** @var DataQualityFieldDefinition $item */
         foreach ($items as $item) {
-            $group           = empty($item->getGroup()) ? FieldDefinitionFactory::DEFAULT_GROUP : $item->getGroup();
+            $group = empty($item->getGroup()) ? FieldDefinitionFactory::DEFAULT_GROUP : $item->getGroup();
             $rules[$group][] = $this->fieldDefinitionFactory->get($item);
         }
 
@@ -178,7 +173,7 @@ final class DataQualityProvider
             $localizedFields = $dataObject->getClass()->getFieldDefinition('localizedfields');
             if ($localizedFields) {
                 $classFieldDefinition = $localizedFields->getFieldDefinition($fieldName);
-                $isLocalizedField     = true;
+                $isLocalizedField = true;
             } else {
                 throw new DataQualityException('fieldtype for field ' . $fieldName . ' is not supported.');
             }
@@ -196,28 +191,27 @@ final class DataQualityProvider
         AbstractObject $dataObject,
         string $getter,
         FieldDefinition $fieldDefinition
-    ): array {
+    ): ValidationResultBag {
         $valid = true;
-        $validFields = [];
+        $data = [];
         /** @var Objectbrick $brickContainer */
         $brickContainer = $dataObject->$getter();
         foreach ($brickContainer->getItems() as $brickItem) {
             $brickFieldDefinitions = $brickItem->getDefinition()->getFieldDefinitions();
+
             foreach ($brickFieldDefinitions as $brickField => $brickFieldValue) {
-                $validFields[$brickField] = $fieldDefinition->getConditionClass()->validate(
+                $result = $fieldDefinition->getConditionClass()->validate(
                     $brickItem->get($brickField),
                     $brickFieldValue,
                     $fieldDefinition->getParameters()
                 );
 
-                $valid = $valid && $validFields[$brickField];
+                $data[$brickField] = $result->isValid();
+                $valid = $valid && $result->isValid();
             }
         }
 
-        return [
-            $valid,
-            $validFields
-        ];
+        return new ValidationResultBag($valid, $data);
     }
 
     private function validateLanguages(
@@ -225,35 +219,51 @@ final class DataQualityProvider
         string $getter,
         FieldDefinition $fieldDefinition,
         Data $classFieldDefinition
-    ): array {
+    ): ValidationResultBag {
         $languages = Tool::getValidLanguages();
         $validLanguages = [];
 
         $fieldLanguage = $fieldDefinition->getLanguage();
         if (!empty($fieldLanguage) && Tool::isValidLanguage($fieldLanguage)) {
             $value = $dataObject->$getter($fieldLanguage);
-            $valid = $fieldDefinition->getConditionClass()->validate(
+            $result = $fieldDefinition->getConditionClass()->validate(
                 $value,
                 $classFieldDefinition,
                 $fieldDefinition->getParameters()
             );
+            $valid = $result->isValid();
         } else {
             $valid = true;
             foreach ($languages as $language) {
-                $value                     = $dataObject->$getter($language);
-                $validLanguages[$language] = $fieldDefinition->getConditionClass()->validate(
+                $value = $dataObject->$getter($language);
+                $result = $fieldDefinition->getConditionClass()->validate(
                     $value,
                     $classFieldDefinition,
                     $fieldDefinition->getParameters()
                 );
 
-                $valid = $valid && $validLanguages[$language];
+                $validLanguages[$language] = $result->isValid();
+
+                $valid = $valid && $result->isValid();
             }
         }
 
-        return [
-            $valid,
-            $validLanguages
-        ];
+        return new ValidationResultBag($valid, $validLanguages);
+    }
+
+    private function validateField(
+        AbstractObject $dataObject,
+        string $getter,
+        FieldDefinition $fieldDefinition,
+        Data $classFieldDefinition
+    ): ValidationResultBag {
+        $value = $dataObject->$getter();
+        $result = $fieldDefinition->getConditionClass()->validate(
+            $value,
+            $classFieldDefinition,
+            $fieldDefinition->getParameters()
+        );
+
+        return $result;
     }
 }

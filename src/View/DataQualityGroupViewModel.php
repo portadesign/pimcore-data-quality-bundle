@@ -1,19 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Basilicom\DataQualityBundle\View;
 
 class DataQualityGroupViewModel
 {
-    private string $name;
-
     /** @var DataQualityFieldViewModel[] */
-    private array $fields;
-
-    public function __construct(string $name, array $fields)
-    {
-        $this->name   = $name;
-        $this->fields = $fields;
-    }
+    public function __construct(
+        private string $name,
+        private array $fields,
+    ) {}
 
     /**
      * @return string

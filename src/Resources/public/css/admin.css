@@ -11,11 +11,12 @@ body {
 .data-quality {
   margin: 0 50px 50px;
 }
+
 .data-quality__standalone {
   margin: 0;
 }
 
-.data-quality__container + .data-quality__container {
+.data-quality__container+.data-quality__container {
   margin-top: 50px;
 }
 
@@ -30,6 +31,7 @@ body {
   color: red;
   font-weight: bold;
 }
+
 .data-quality__percent--complete {
   color: #28a050;
 }
@@ -78,10 +80,15 @@ body {
   border: 1px solid #a0a0a0;
 }
 
-.data-quality__language.data-quality__language--invalid  {
+.data-quality__language.data-quality__language--invalid {
   background-color: #FFB8B8;
 }
 
 .pimcore_icon_charty {
   background: url(/bundles/pimcoreadmin/img/flat-color-icons/pie_chart.svg) center center no-repeat !important;
+}
+
+.data-quality__fields-list {
+  margin: 0;
+  padding-inline-start: 2rem;
 }

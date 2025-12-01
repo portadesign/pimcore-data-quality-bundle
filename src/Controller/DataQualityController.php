@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Basilicom\DataQualityBundle\Controller;
 
 use Basilicom\DataQualityBundle\Exception\DataQualityException;
@@ -18,14 +20,10 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class DataQualityController extends FrontendController
 {
-    private DataQualityService $dataQualityService;
-    private Translator $translator;
-
-    public function __construct(DataQualityService $dataQualityService, Translator $translator)
-    {
-        $this->dataQualityService = $dataQualityService;
-        $this->translator = $translator;
-    }
+    public function __construct(
+        private readonly DataQualityService $dataQualityService,
+        private readonly Translator $translator,
+    ) {}
 
     /**
      * @Route("/index/{id}")
@@ -90,7 +88,6 @@ class DataQualityController extends FrontendController
                 'result' => ['message' => 'ok'],
                 'error' => null,
             ], 200);
-
         } catch (Exception $exception) {
 
             if ($exception instanceof DataQualityException) {

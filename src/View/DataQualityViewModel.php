@@ -1,21 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Basilicom\DataQualityBundle\View;
 
 class DataQualityViewModel
 {
-    private string $title;
-    private int $percentage;
-
-    /** @var DataQualityGroupViewModel[] */
-    private array $groups;
-
-    public function __construct(string $title, int $percentage, array $groups)
-    {
-        $this->title      = $title;
-        $this->percentage = $percentage;
-        $this->groups     = $groups;
-    }
+    /**
+     * @param DataQualityGroupViewModel[] $groups
+     */
+    public function __construct(
+        private string $title,
+        private int $percentage,
+        private array $groups,
+    ) {}
 
     /**
      * @return string

@@ -1,6 +1,8 @@
 <?php
 
-namespace Basilicom\DataQualityBundle\Definition;
+declare(strict_types=1);
+
+namespace Basilicom\DataQualityBundle\Exception;
 
 use Basilicom\DataQualityBundle\Exception\AbstractDataQualityException;
 

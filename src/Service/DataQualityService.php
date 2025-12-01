@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Basilicom\DataQualityBundle\Service;
 
 use Basilicom\DataQualityBundle\Provider\DataQualityProvider;
@@ -9,12 +11,9 @@ use Pimcore\Model\DataObject\DataQualityConfig;
 
 class DataQualityService
 {
-    private DataQualityProvider $dataQualityProvider;
-
-    public function __construct(DataQualityProvider $dataQualityProvider)
-    {
-        $this->dataQualityProvider = $dataQualityProvider;
-    }
+    public function __construct(
+        private readonly DataQualityProvider $dataQualityProvider,
+    ) {}
 
     /**
      * @return DataQualityConfig[]

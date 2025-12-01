@@ -6,55 +6,61 @@
 
 {% trans_default_domain 'admin' %}
 
-{% block body %}
-    <div class="data-quality{% if standalone %}__standalone{% endif %}">
-        {% if error is not empty %}
-            <div class="data-quality__error">
-                {{ error }}
-            </div>
-        {% endif %}
+	{% block body %}
+		<div class="data-quality{% if standalone %}__standalone{% endif %}"> {% if error is not empty %}
+			<div class="data-quality__error">
+				{{ error }}
+			</div>
+		{% endif %}
 
-        {% if data is not empty %}
-            {% for qualityConfig in data %}
-                <div class="data-quality__container">
-                    <h1 class="data-quality__headline">
-                        {% if qualityConfig.title is empty %}
-                            {{ 'dataQuality.label.total' | trans }}
-                        {% else %}
-                            {{ qualityConfig.title }}:
-                        {% endif %}
-                        <span class="data-quality__percent{% if qualityConfig.percentage == 100 %} data-quality__percent--complete{% endif %}">{{ qualityConfig.percentage }}%</span>
-                    </h1>
+		{% if data is not empty %}
+			{% for qualityConfig in data %}
+				<div class="data-quality__container">
+					<h1 class="data-quality__headline">
+						{% if qualityConfig.title is empty %}
+							{{ 'dataQuality.label.total' | trans }}
+						{% else %}
+							{{ qualityConfig.title }}:
+						{% endif %}
+						<span class="data-quality__percent{% if qualityConfig.percentage == 100 %} data-quality__percent--complete{% endif %}">{{ qualityConfig.percentage }}%</span>
+					</h1>
 
-                    {% for group in qualityConfig.groups %}
-                        <div class="data-quality__group">
-                            <h2 class="data-quality__group-headline">
-                                {% if group.name == constant('Basilicom\\DataQualityBundle\\DefinitionsCollection\\Factory\\FieldDefinitionFactory::DEFAULT_GROUP') %}
-                                    {{ 'dataQuality.label.default-group' | trans }}
-                                {% else %}
-                                    {{ group.name }}
-                                {% endif %}
-                            </h2>
-                            <table class="data-quality__table">
-                                {% for field in group.fields %}
-                                    <tr class="data-quality__row">
-                                        <td class="data-quality__column{{ not field.valid ? ' data-quality__column--invalid' : '' }}">
-                                            {{ field.name }} {% if field.language %}#{{ field.language }}{% endif %} ({{ field.weight }})
-                                            <div>
-                                                {% if field.validFields is not empty %}
-                                                    {% for subField, valid in field.validFields %}
-                                                        <span class="data-quality__language{{ not valid ? ' data-quality__language--invalid' : '' }}">{{ subField }}</span>
-                                                    {% endfor %}
-                                                {% endif %}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                            </table>
-                        </div>
-                    {% endfor %}
-                </div>
-            {% endfor %}
-        {% endif %}
-    </div>
+					{% for group in qualityConfig.groups %}
+						<div class="data-quality__group">
+							<h2 class="data-quality__group-headline">
+								{% if group.name == constant('Basilicom\\DataQualityBundle\\DefinitionsCollection\\Factory\\FieldDefinitionFactory::DEFAULT_GROUP') %}
+									{{ 'dataQuality.label.default-group' | trans }}
+								{% else %}
+									{{ group.name }}
+								{% endif %}
+							</h2>
+							<table class="data-quality__table">
+								{% for field in group.fields %}
+									<tr class="data-quality__row">
+										<td class="data-quality__column{{ not field.valid ? ' data-quality__column--invalid' : '' }}">
+											{{ field.name }}
+											{% if field.language %}#{{ field.language }}
+											{% endif %}
+											({{ field.weight }})
+											{% if field.data is not empty %}
+												<ul class="data-quality__fields-list">
+													{% for key, value in field.data %}
+														{% if key matches '/^\\d+$/' %}
+															<li>{{ value }}</li>
+														{% else %}
+															<li class="data-quality__field-item{{ not value ? ' data-quality__field-item--invalid' : '' }}">{{ key }}</li>
+														{% endif %}
+													{% endfor %}
+												</ul>
+											{% endif %}
+										</td>
+									</tr>
+								{% endfor %}
+							</table>
+						</div>
+					{% endfor %}
+				</div>
+			{% endfor %}
+		{% endif %}
+	</div>
 {% endblock %}
