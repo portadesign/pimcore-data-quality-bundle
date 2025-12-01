@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Basilicom\DataQualityBundle\Model\Renderer;
 
 use Pimcore\Model\DataObject\ClassDefinition\Layout\DynamicTextLabelInterface;

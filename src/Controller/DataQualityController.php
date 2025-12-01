@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Basilicom\DataQualityBundle\Controller;
 
 use Basilicom\DataQualityBundle\Exception\DataQualityException;
@@ -90,7 +92,6 @@ class DataQualityController extends FrontendController
                 'result' => ['message' => 'ok'],
                 'error' => null,
             ], 200);
-
         } catch (Exception $exception) {
 
             if ($exception instanceof DataQualityException) {

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Basilicom\DataQualityBundle\EventSubscriber;
 
 use Pimcore\Event\BundleManager\PathsEvent;

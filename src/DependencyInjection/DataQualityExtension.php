@@ -1,8 +1,10 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Basilicom\DataQualityBundle\DependencyInjection;
 
+use Basilicom\DataQualityBundle\Contract\DefinitionInterface;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
@@ -23,5 +25,9 @@ class DataQualityExtension extends Extension
         // use this to load your custom configurations
         $loader = new YamlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('services.yml');
+
+        // Automatically tag all classes implementing DefinitionInterface
+        $container->registerForAutoconfiguration(DefinitionInterface::class)
+            ->addTag('data_quality.definition');
     }
 }

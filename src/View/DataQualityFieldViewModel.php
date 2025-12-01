@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Basilicom\DataQualityBundle\View;
 
 class DataQualityFieldViewModel
@@ -8,15 +10,15 @@ class DataQualityFieldViewModel
     private int $weight;
     private bool $valid;
     private ?string $language;
-    private ?array $validFields;
+    private ?array $data;
 
-    public function __construct(string $name, int $weight, bool $valid, ?string $language = null, ?array $validFields = null)
+    public function __construct(string $name, int $weight, bool $valid, ?string $language = null, ?array $data = null)
     {
         $this->name        = $name;
         $this->weight      = $weight;
         $this->valid       = $valid;
         $this->language    = $language;
-        $this->validFields = $validFields;
+        $this->data        = $data;
     }
 
     /**
@@ -54,8 +56,8 @@ class DataQualityFieldViewModel
     /**
      * @return array|null
      */
-    public function getValidFields(): ?array
+    public function getData(): ?array
     {
-        return $this->validFields;
+        return $this->data;
     }
 }

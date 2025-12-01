@@ -1,10 +1,10 @@
 pimcore:
-  objects:
-    class_definitions:
-      layout:
-        map:
-          dataQuality: Basilicom\DataQualityBundle\Model\DataObject\ClassDefinition\Layout\DataQuality
+    objects:
+        class_definitions:
+            layout:
+                map:
+                    dataQuality: Basilicom\DataQualityBundle\Model\DataObject\ClassDefinition\Layout\DataQuality
 
 doctrine_migrations:
-  migrations_paths:
-    'Basilicom\DataQualityBundle\Migrations': '@DataQualityBundle/Migrations'
+    migrations_paths:
+        'Basilicom\DataQualityBundle\Migrations': "@DataQualityBundle/Migrations"

@@ -1,8 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Basilicom\DataQualityBundle\DefinitionsCollection;
 
-use Basilicom\DataQualityBundle\Definition\DefinitionInterface;
+use Basilicom\DataQualityBundle\Contract\DefinitionInterface;
 
 class FieldDefinition
 {

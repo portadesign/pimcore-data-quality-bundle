@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Basilicom\DataQualityBundle\Command;
 
 use Basilicom\DataQualityBundle\Exception\DataQualityException;
@@ -10,18 +12,21 @@ use Pimcore\Console\AbstractCommand;
 use Pimcore\Model\DataObject\AbstractObject;
 use Pimcore\Model\DataObject\ClassDefinition;
 use Pimcore\Model\DataObject\DataQualityConfig;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
+#[AsCommand(
+    name: 'dataquality:update',
+    description: 'Re-compute and update data quality on objects.',
+    aliases: ['dq:update']
+)]
 class UpdateDataQualityCommand extends AbstractCommand
 {
     const STOP_CHILD_PROCESS = 987;
-
-    protected static $defaultName        = 'dataquality:update';
-    protected static $defaultDescription = 'Re-compute and update data quality on objects.';
 
     private int $batchSize = 100;
 
@@ -38,7 +43,6 @@ class UpdateDataQualityCommand extends AbstractCommand
     protected function configure()
     {
         $this
-            ->setAliases(['dq:update'])
             ->addArgument(
                 'quality-config-id',
                 InputArgument::REQUIRED,
