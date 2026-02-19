@@ -166,21 +166,30 @@ final class DataQualityProvider
     /**
      * @throws DataQualityException
      */
-    private function getClassFieldDefinition(AbstractObject $dataObject, string $fieldName, bool &$isLocalizedField): Data
-    {
-        $classFieldDefinition = $dataObject->getClass()->getFieldDefinition($fieldName);
-        if (empty($classFieldDefinition)) {
-            $localizedFields = $dataObject->getClass()->getFieldDefinition('localizedfields');
-            if ($localizedFields) {
-                $classFieldDefinition = $localizedFields->getFieldDefinition($fieldName);
-                $isLocalizedField = true;
-            } else {
-                throw new DataQualityException('fieldtype for field ' . $fieldName . ' is not supported.');
-            }
-        }
 
-        return $classFieldDefinition;
-    }
+     private function getClassFieldDefinition(AbstractObject $dataObject, string $fieldName, bool &$isLocalizedField): Data
+     {
+         $class = $dataObject->getClass();
+
+         $localizedFields = $class->getFieldDefinition('localizedfields');
+         if ($localizedFields instanceof \Pimcore\Model\DataObject\ClassDefinition\Data\Localizedfields) {
+             $localizedFieldDef = $localizedFields->getFieldDefinition($fieldName);
+
+             if ($localizedFieldDef instanceof Data) {
+                 $isLocalizedField = true;
+
+                 return $localizedFieldDef;
+             }
+         }
+
+         $classFieldDefinition = $class->getFieldDefinition($fieldName);
+
+         if (!$classFieldDefinition instanceof Data) {
+             throw new DataQualityException(sprintf('Fieldtype for field %s is not supported', $fieldName));
+         }
+
+         return $classFieldDefinition;
+     }
 
     private function isObjectBricks(Data $fieldDefinition): bool
     {

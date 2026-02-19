@@ -84,7 +84,7 @@ bin/console dataquality:update <quality-config-id> <batch-size>
 
 ### Grid View
 * You can use the "Operator PHP Code" 
-   * ``Portadesign\DataQualityBundle\GridOperator\Quality`` on a Data Quality (number) field 
+   * ``Basilicom\DataQualityBundle\GridOperator\Quality`` on a Data Quality (number) field 
    ![](documentation/grid-view-setting.jpg)
    * to get color-coded (red to green) percentages
    ![](documentation/grid-view.jpg)
