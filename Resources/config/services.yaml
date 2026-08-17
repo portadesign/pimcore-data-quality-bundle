@@ -1,0 +1,57 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+
+    Portadesign\DataQualityBundle\Installer:
+        public: true
+
+    Portadesign\DataQualityBundle\Resolver\:
+        resource: '../../src/Resolver/*'
+
+    Portadesign\DataQualityBundle\Resolver\QualityConfigurationResolver:
+        arguments:
+            $channelRelationFieldName: '%portadesign_data_quality.channel_relation_field_name%'
+            $categoryRelationFieldName: '%portadesign_data_quality.category_relation_field_name%'
+
+    Portadesign\DataQualityBundle\Contract\ClassificationStoreKeyResolverInterface:
+        class: Portadesign\DataQualityBundle\Support\PimcoreClassificationStoreKeyResolver
+
+    Portadesign\DataQualityBundle\RuleChecker\:
+        resource: '../../src/RuleChecker/*'
+
+    Portadesign\DataQualityBundle\RuleChecker\ClassificationStoreKeyPresenceChecker:
+        arguments:
+            $classificationStoreId: '%portadesign_data_quality.classification_store_id%'
+
+    Portadesign\DataQualityBundle\Service\:
+        resource: '../../src/Service/*'
+
+    Portadesign\DataQualityBundle\Repository\:
+        resource: '../../src/Repository/*'
+
+    Portadesign\DataQualityBundle\Contract\QualityScoreStateRepositoryInterface: '@Portadesign\DataQualityBundle\Repository\QualityScoreStateRepository'
+
+    Portadesign\DataQualityBundle\EventSubscriber\:
+        resource: '../../src/EventSubscriber/*'
+
+    Portadesign\DataQualityBundle\EventListener\:
+        resource: '../../src/EventListener/*'
+
+    Portadesign\DataQualityBundle\Observer\:
+        resource: '../../src/Observer/*'
+
+    Portadesign\DataQualityBundle\Controller\:
+        resource: '../../src/Controller'
+        public: true
+        tags: ['controller.service_arguments']
+
+    # Confirmed against a live install (see pimcore-ai-bundle's own services.yaml for the same
+    # note): `autoconfigure: true` does NOT auto-tag this — Studio UI only auto-tags its own
+    # AppConfigProviderInterface via `_instanceof`; WebpackEntryPointProviderInterface needs an
+    # explicit tag, same as Studio UI's own provider does for itself. Without this, the plugin's
+    # remoteEntry.js is silently never requested by the browser — no error anywhere.
+    Portadesign\DataQualityBundle\Webpack\WebpackEntryPointProvider:
+        tags:
+            - { name: 'pimcore_studio_ui.webpack_entry_point_provider' }

@@ -1,0 +1,18 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Portadesign\DataQualityBundle\Support;
+
+use Pimcore\Model\DataObject\Classificationstore\KeyConfig;
+use Portadesign\DataQualityBundle\Contract\ClassificationStoreKeyResolverInterface;
+
+final class PimcoreClassificationStoreKeyResolver implements ClassificationStoreKeyResolverInterface
+{
+    public function resolveKeyId(string $keyCode, int $storeId): ?int
+    {
+        $keyConfig = KeyConfig::getByName($keyCode, $storeId);
+
+        return $keyConfig instanceof KeyConfig ? $keyConfig->getId() : null;
+    }
+}

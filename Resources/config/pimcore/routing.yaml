@@ -1,0 +1,4 @@
+portadesign_data_quality:
+    resource: "@PortadesignDataQualityBundle/src/Controller/"
+    type: attribute
+    prefix: /
