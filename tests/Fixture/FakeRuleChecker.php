@@ -9,24 +9,27 @@ use Portadesign\DataQualityBundle\Contract\QualityConfigurationInterface;
 use Portadesign\DataQualityBundle\Contract\RuleCheckerInterface;
 
 /**
- * Rule checker double for QualityEvaluationService tests: supports a fixed targetType and returns
- * a fixed/keyed satisfaction result, so scoring math can be asserted independently of any real
- * checker implementation.
+ * Rule checker double for QualityEvaluationService tests: `$supports` decides dispatch (real
+ * checkers now decide via a targetKey membership test against the object; these tests only care
+ * about the resulting scoring math, not the dispatch rule itself, so a plain predicate is enough),
+ * and returns a fixed/keyed satisfaction result so scoring math can be asserted independently of
+ * any real checker implementation.
  */
 final class FakeRuleChecker implements RuleCheckerInterface
 {
     /**
-     * @param array<string, bool> $resultsByRuleId
+     * @param \Closure(QualityConfigurationInterface, Concrete): bool $supports
+     * @param array<string, bool>                                    $resultsByRuleId
      */
     public function __construct(
-        private readonly string $supportedTargetType,
+        private readonly \Closure $supports,
         private readonly array $resultsByRuleId,
     ) {
     }
 
-    public function supports(QualityConfigurationInterface $rule): bool
+    public function supports(QualityConfigurationInterface $rule, Concrete $object): bool
     {
-        return $rule->getTargetType() === $this->supportedTargetType;
+        return ($this->supports)($rule, $object);
     }
 
     public function check(Concrete $object, QualityConfigurationInterface $rule): bool

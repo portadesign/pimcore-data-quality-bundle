@@ -20,12 +20,13 @@ final class ClassificationStoreKeyPresenceCheckerTest extends TestCase
     private const int KEY_ID = 42;
     private const int GROUP_ID = 7;
 
-    public function testSupportsClassificationStoreKeyTargetTypeOnly(): void
+    public function testSupportsRulesWhoseTargetKeyResolvesInTheClassificationStore(): void
     {
-        $checker = $this->makeChecker(self::KEY_ID);
+        $object = new FakeObjectWithAttributes();
 
-        self::assertTrue($checker->supports(new FakeQualityRule(targetType: 'classificationStoreKey')));
-        self::assertFalse($checker->supports(new FakeQualityRule(targetType: 'coreField')));
+        self::assertTrue($this->makeChecker(self::KEY_ID)->supports(new FakeQualityRule(targetKey: 'AS136'), $object));
+        self::assertFalse($this->makeChecker(null)->supports(new FakeQualityRule(targetKey: 'UNKNOWN_CODE'), $object));
+        self::assertFalse($this->makeChecker(self::KEY_ID)->supports(new FakeQualityRule(targetKey: null), $object));
     }
 
     public function testPresentValueInActiveGroupSatisfiesTheRule(): void

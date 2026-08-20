@@ -20,10 +20,13 @@ final class FieldPresenceCheckerTest extends TestCase
         $this->checker = new FieldPresenceChecker(new FakeValidLanguageProvider(['en', 'cs']));
     }
 
-    public function testSupportsCoreFieldTargetTypeOnly(): void
+    public function testSupportsRulesWhoseTargetKeyIsARealGetterOnTheObject(): void
     {
-        self::assertTrue($this->checker->supports(new FakeQualityRule(targetType: 'coreField')));
-        self::assertFalse($this->checker->supports(new FakeQualityRule(targetType: 'classificationStoreKey')));
+        $object = new FakeCoreFieldObject();
+
+        self::assertTrue($this->checker->supports(new FakeQualityRule(targetKey: 'ean'), $object));
+        self::assertFalse($this->checker->supports(new FakeQualityRule(targetKey: 'thisFieldDoesNotExist'), $object));
+        self::assertFalse($this->checker->supports(new FakeQualityRule(targetKey: null), $object));
     }
 
     public function testPresentStringValueSatisfiesTheRule(): void

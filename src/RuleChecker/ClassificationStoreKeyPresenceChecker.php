@@ -13,7 +13,7 @@ use Portadesign\DataQualityBundle\Contract\ValidLanguageProviderInterface;
 use Portadesign\DataQualityBundle\Exception\RuleConfigurationException;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 
-#[AutoconfigureTag('quality.rule_checker')]
+#[AutoconfigureTag('quality.rule_checker', ['priority' => 10])]
 final class ClassificationStoreKeyPresenceChecker implements RuleCheckerInterface
 {
     use PresenceCheckTrait;
@@ -25,9 +25,15 @@ final class ClassificationStoreKeyPresenceChecker implements RuleCheckerInterfac
     ) {
     }
 
-    public function supports(QualityConfigurationInterface $rule): bool
+    public function supports(QualityConfigurationInterface $rule, Concrete $object): bool
     {
-        return $rule->getTargetType() === 'classificationStoreKey';
+        $targetKey = $rule->getTargetKey();
+
+        if ($targetKey === null || $targetKey === '') {
+            return false;
+        }
+
+        return $this->keyResolver->resolveKeyId($targetKey, $this->classificationStoreId) !== null;
     }
 
     public function check(Concrete $object, QualityConfigurationInterface $rule): bool

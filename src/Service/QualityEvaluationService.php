@@ -50,7 +50,7 @@ final class QualityEvaluationService
         $mandatoryTotalWeight = 0.0;
 
         foreach ($rules as $rule) {
-            $checker = $this->findChecker($rule);
+            $checker = $this->findChecker($rule, $object);
             $satisfied = $checker->check($object, $rule);
 
             $level = (string) $rule->getRequirementLevel();
@@ -64,7 +64,6 @@ final class QualityEvaluationService
                 satisfied: $satisfied,
                 level: $level,
                 weight: $weight,
-                message: $rule->getMessage(),
                 targetKey: $rule->getTargetKey(),
             );
 
@@ -95,19 +94,19 @@ final class QualityEvaluationService
         );
     }
 
-    private function findChecker(QualityConfigurationInterface $rule): RuleCheckerInterface
+    private function findChecker(QualityConfigurationInterface $rule, Concrete $object): RuleCheckerInterface
     {
         foreach ($this->ruleCheckers as $checker) {
-            if ($checker->supports($rule)) {
+            if ($checker->supports($rule, $object)) {
                 return $checker;
             }
         }
 
         throw new RuleConfigurationException(\sprintf(
-            'No rule checker supports rule "%s" (targetType "%s", ruleType "%s").',
+            'No rule checker supports rule "%s" (targetKey "%s") against %s.',
             (string) $rule->getDescription(),
-            (string) $rule->getTargetType(),
-            (string) $rule->getRuleType(),
+            (string) $rule->getTargetKey(),
+            $object::class,
         ));
     }
 

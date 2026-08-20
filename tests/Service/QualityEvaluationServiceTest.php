@@ -23,7 +23,7 @@ final class QualityEvaluationServiceTest extends TestCase
             new FakeQualityRule(id: 3, targetType: 'coreField', requirementLevel: 'recommended', weight: 5.0),
         ];
 
-        $checker = new FakeRuleChecker('coreField', [
+        $checker = new FakeRuleChecker(static fn (): bool => true, [
             '1' => true,  // satisfied, weight 3
             '2' => false, // unsatisfied, weight 1
             '3' => false, // recommended, irrelevant to score
@@ -45,7 +45,7 @@ final class QualityEvaluationServiceTest extends TestCase
             new FakeQualityRule(id: 2, targetType: 'coreField', requirementLevel: 'mandatory', weight: 2.0),
         ];
 
-        $checker = new FakeRuleChecker('coreField', ['1' => true, '2' => true]);
+        $checker = new FakeRuleChecker(static fn (): bool => true, ['1' => true, '2' => true]);
 
         $service = $this->makeService($rules, [$checker]);
         $result = $service->evaluate(new FakeCoreFieldObject());
@@ -61,7 +61,7 @@ final class QualityEvaluationServiceTest extends TestCase
             new FakeQualityRule(id: 2, targetType: 'coreField', requirementLevel: 'optional', weight: 1.0),
         ];
 
-        $checker = new FakeRuleChecker('coreField', ['1' => false, '2' => false]);
+        $checker = new FakeRuleChecker(static fn (): bool => true, ['1' => false, '2' => false]);
 
         $service = $this->makeService($rules, [$checker]);
         $result = $service->evaluate(new FakeCoreFieldObject());
@@ -91,7 +91,7 @@ final class QualityEvaluationServiceTest extends TestCase
             new FakeQualityRule(id: 2, targetType: 'coreField', requirementLevel: 'mandatory', weight: 1.0),
         ];
 
-        $checker = new FakeRuleChecker('coreField', ['1' => true, '2' => false]);
+        $checker = new FakeRuleChecker(static fn (): bool => true, ['1' => true, '2' => false]);
 
         $service = $this->makeService($rules, [$checker]);
         $result = $service->evaluate(new FakeCoreFieldObject());
@@ -108,7 +108,7 @@ final class QualityEvaluationServiceTest extends TestCase
             new FakeQualityRule(id: 3, targetType: 'coreField', requirementLevel: 'mandatory', weight: 1.0),
         ];
 
-        $checker = new FakeRuleChecker('coreField', ['1' => true, '2' => false, '3' => false]);
+        $checker = new FakeRuleChecker(static fn (): bool => true, ['1' => true, '2' => false, '3' => false]);
 
         $service = $this->makeService($rules, [$checker]);
         $result = $service->evaluate(new FakeCoreFieldObject());
@@ -120,11 +120,11 @@ final class QualityEvaluationServiceTest extends TestCase
     public function testUnsupportedRuleThrowsRuleConfigurationException(): void
     {
         $rules = [
-            new FakeQualityRule(id: 1, targetType: 'classificationStoreKey', requirementLevel: 'mandatory'),
+            new FakeQualityRule(id: 1, requirementLevel: 'mandatory'),
         ];
 
-        // Only a "coreField" checker is registered — nothing supports this rule.
-        $checker = new FakeRuleChecker('coreField', ['1' => true]);
+        // The only registered checker declines to support this rule.
+        $checker = new FakeRuleChecker(static fn (): bool => false, ['1' => true]);
 
         $service = $this->makeService($rules, [$checker]);
 

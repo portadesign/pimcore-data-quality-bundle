@@ -70,7 +70,7 @@ final class ProductQualityPostUpdateListenerTest extends TestCase
         $expectedScore = $satisfied ? 100.0 : 0.0;
 
         $rule = new FakeQualityRule(id: 1);
-        $checker = new FakeRuleChecker('coreField', ['1' => $satisfied]);
+        $checker = new FakeRuleChecker(static fn (): bool => true, ['1' => $satisfied]);
 
         $resolver = $this->createStub(QualityConfigurationResolver::class);
         $resolver->method('loadActiveRules')->willReturn([$rule]);

@@ -52,6 +52,10 @@ services:
     Portadesign\DataQualityBundle\EventListener\:
         resource: '../../src/EventListener/*'
 
+    Portadesign\DataQualityBundle\EventListener\DataQualityRuleDescriptionListener:
+        arguments:
+            $classificationStoreId: '%portadesign_data_quality.classification_store_id%'
+
     Portadesign\DataQualityBundle\Observer\:
         resource: '../../src/Observer/*'
 

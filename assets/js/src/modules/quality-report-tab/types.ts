@@ -4,7 +4,6 @@ export interface QualityCheck {
   satisfied: boolean
   level: string
   weight: number
-  message: string | null
   targetKey: string | null
 }
 

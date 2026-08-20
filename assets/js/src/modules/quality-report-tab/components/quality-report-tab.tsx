@@ -38,7 +38,7 @@ const colorRank: Record<LightColor, number> = { red: 0, gold: 1, green: 2 }
 // the fields needing attention are immediately visible without reading a list of prose. Labeled by
 // targetKey (the actual object/Classification-Store field the rule checks) when available, falling
 // back to the rule's own description for unscoped or legacy rules with no targetKey - the full
-// rule name + message is always available on hover via the tooltip.
+// rule name is always available on hover via the tooltip.
 const FieldTrafficLights = ({ checks }: { checks: QualityCheck[] }): React.JSX.Element | null => {
   if (checks.length === 0) {
     return null
@@ -59,7 +59,6 @@ const FieldTrafficLights = ({ checks }: { checks: QualityCheck[] }): React.JSX.E
               <Space direction='vertical' size={0}>
                 <Typography.Text strong style={{ color: 'inherit' }}>{check.ruleName}</Typography.Text>
                 <Typography.Text style={{ color: 'inherit' }}>{check.level} · weight {check.weight}</Typography.Text>
-                {check.message !== null && <Typography.Text style={{ color: 'inherit' }}>{check.message}</Typography.Text>}
               </Space>
             }
           >

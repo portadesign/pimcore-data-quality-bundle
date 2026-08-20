@@ -11,7 +11,9 @@ use Portadesign\DataQualityBundle\Contract\ValidLanguageProviderInterface;
 use Portadesign\DataQualityBundle\Exception\RuleConfigurationException;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 
-#[AutoconfigureTag('quality.rule_checker')]
+// Higher priority than ClassificationStoreKeyPresenceChecker: core-field names and Classification
+// Store key codes aren't expected to collide, but this is the deterministic tiebreak if they ever do.
+#[AutoconfigureTag('quality.rule_checker', ['priority' => 20])]
 final class FieldPresenceChecker implements RuleCheckerInterface
 {
     use PresenceCheckTrait;
@@ -21,9 +23,11 @@ final class FieldPresenceChecker implements RuleCheckerInterface
     ) {
     }
 
-    public function supports(QualityConfigurationInterface $rule): bool
+    public function supports(QualityConfigurationInterface $rule, Concrete $object): bool
     {
-        return $rule->getTargetType() === 'coreField';
+        $targetKey = $rule->getTargetKey();
+
+        return $targetKey !== null && $targetKey !== '' && \method_exists($object, 'get' . \ucfirst($targetKey));
     }
 
     public function check(Concrete $object, QualityConfigurationInterface $rule): bool

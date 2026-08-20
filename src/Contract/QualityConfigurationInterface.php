@@ -28,11 +28,6 @@ interface QualityConfigurationInterface
      */
     public function getDependentObjects(): array;
 
-    /**
-     * One of coreField|classificationStoreKey.
-     */
-    public function getTargetType(): ?string;
-
     public function getTargetKey(): ?string;
 
     /**
@@ -41,10 +36,6 @@ interface QualityConfigurationInterface
     public function getRequirementLevel(): ?string;
 
     public function getWeight(): ?float;
-
-    public function getMessage(): ?string;
-
-    public function getRuleType(): ?string;
 
     public function getActive(): ?bool;
 }
