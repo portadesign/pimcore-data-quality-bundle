@@ -12,6 +12,7 @@ use Portadesign\DataQualityBundle\RuleChecker\ClassificationStoreKeyPresenceChec
 use Portadesign\DataQualityBundle\Tests\Fixture\FakeObjectWithAttributes;
 use Portadesign\DataQualityBundle\Tests\Fixture\FakeObjectWithoutAttributes;
 use Portadesign\DataQualityBundle\Tests\Fixture\FakeQualityRule;
+use Portadesign\DataQualityBundle\Tests\Fixture\FakeValidLanguageProvider;
 
 final class ClassificationStoreKeyPresenceCheckerTest extends TestCase
 {
@@ -72,6 +73,61 @@ final class ClassificationStoreKeyPresenceCheckerTest extends TestCase
         self::assertFalse($checker->check($object, new FakeQualityRule(targetType: 'classificationStoreKey', targetKey: 'AS136')));
     }
 
+    public function testValuePresentInEveryConfiguredLanguageSatisfiesTheRule(): void
+    {
+        $checker = $this->makeChecker(self::KEY_ID);
+
+        $store = $this->createStub(Classificationstore::class);
+        $store->method('getActiveGroups')->willReturn([self::GROUP_ID => true]);
+        $store->method('getLocalizedKeyValue')->willReturnCallback(
+            static fn (int $groupId, int $keyId, ?string $language = 'default'): ?string => match ($language) {
+                'en' => 'English value',
+                'cs' => 'Czech value',
+                default => null,
+            },
+        );
+
+        $object = new FakeObjectWithAttributes();
+        $object->setAttributes($store);
+
+        self::assertTrue($checker->check($object, new FakeQualityRule(targetType: 'classificationStoreKey', targetKey: 'AS136')));
+    }
+
+    public function testValueMissingInOneConfiguredLanguageDoesNotSatisfyTheRule(): void
+    {
+        $checker = $this->makeChecker(self::KEY_ID);
+
+        $store = $this->createStub(Classificationstore::class);
+        $store->method('getActiveGroups')->willReturn([self::GROUP_ID => true]);
+        // 'cs' deliberately has no value (and no "default" fallback either, simulated by the
+        // stub returning null): this is the bug being fixed - only checking one language/
+        // "default" used to let this incomplete key silently pass.
+        $store->method('getLocalizedKeyValue')->willReturnCallback(
+            static fn (int $groupId, int $keyId, ?string $language = 'default'): ?string => match ($language) {
+                'en' => 'English value',
+                default => null,
+            },
+        );
+
+        $object = new FakeObjectWithAttributes();
+        $object->setAttributes($store);
+
+        self::assertFalse($checker->check($object, new FakeQualityRule(targetType: 'classificationStoreKey', targetKey: 'AS136')));
+    }
+
+    public function testDefaultOnlyValueSatisfiesTheRuleForEveryConfiguredLanguage(): void
+    {
+        // Simulates this project's actual current data shape: every value lives under Pimcore's
+        // "default" pseudo-language bucket, never under a real per-language key.
+        // Classificationstore::getLocalizedKeyValue() unconditionally falls back to "default"
+        // when a language-specific value is absent, so this must stay a no-op - the same value
+        // is returned regardless of which language is asked for.
+        $checker = $this->makeChecker(self::KEY_ID);
+        $object = $this->makeObjectWithValue('some value');
+
+        self::assertTrue($checker->check($object, new FakeQualityRule(targetType: 'classificationStoreKey', targetKey: 'AS136')));
+    }
+
     public function testUnknownKeyCodeThrowsRuleConfigurationException(): void
     {
         $checker = $this->makeChecker(null);
@@ -97,7 +153,7 @@ final class ClassificationStoreKeyPresenceCheckerTest extends TestCase
         $resolver = $this->createStub(ClassificationStoreKeyResolverInterface::class);
         $resolver->method('resolveKeyId')->willReturn($resolvedKeyId);
 
-        return new ClassificationStoreKeyPresenceChecker(self::STORE_ID, $resolver);
+        return new ClassificationStoreKeyPresenceChecker(self::STORE_ID, $resolver, new FakeValidLanguageProvider(['en', 'cs']));
     }
 
     private function makeObjectWithValue(mixed $value): FakeObjectWithAttributes

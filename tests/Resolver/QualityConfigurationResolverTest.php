@@ -11,57 +11,58 @@ use Portadesign\DataQualityBundle\Tests\Fixture\FakeQualityRule;
 
 final class QualityConfigurationResolverTest extends TestCase
 {
-    public function testChannelScopedRuleAppliesOnlyToItsOwnChannel(): void
+    public function testScopedRuleAppliesOnlyWhenItsDependentObjectIsInScope(): void
     {
         $channelA = $this->makeElement(10);
         $channelB = $this->makeElement(20);
 
-        $rule = new FakeQualityRule(id: 1, channel: $channelA);
+        $rule = new FakeQualityRule(id: 1, dependentObjects: [$channelA]);
 
-        $resolver = new QualityConfigurationResolver('channels', 'categories');
+        $resolver = new QualityConfigurationResolver();
 
-        self::assertSame([$rule], $resolver->filter([$rule], $channelA, null));
-        self::assertSame([], $resolver->filter([$rule], $channelB, null));
-        self::assertSame([], $resolver->filter([$rule], null, null));
+        self::assertSame([$rule], $resolver->filter([$rule], [$channelA]));
+        self::assertSame([], $resolver->filter([$rule], [$channelB]));
+        self::assertSame([], $resolver->filter([$rule], []));
     }
 
-    public function testCategoryScopedRuleAppliesOnlyToItsOwnCategory(): void
+    public function testRuleAppliesWhenAnyOfMultipleDependentObjectsIsInScope(): void
     {
-        $categoryA = $this->makeElement(30);
-        $categoryB = $this->makeElement(40);
+        $channel = $this->makeElement(10);
+        $category = $this->makeElement(30);
+        $otherCategory = $this->makeElement(40);
 
-        $rule = new FakeQualityRule(id: 1, category: $categoryA);
+        $rule = new FakeQualityRule(id: 1, dependentObjects: [$channel, $category]);
 
-        $resolver = new QualityConfigurationResolver('channels', 'categories');
+        $resolver = new QualityConfigurationResolver();
 
-        self::assertSame([$rule], $resolver->filter([$rule], null, $categoryA));
-        self::assertSame([], $resolver->filter([$rule], null, $categoryB));
-        self::assertSame([], $resolver->filter([$rule], null, null));
+        self::assertSame([$rule], $resolver->filter([$rule], [$channel]));
+        self::assertSame([$rule], $resolver->filter([$rule], [$category]));
+        self::assertSame([], $resolver->filter([$rule], [$otherCategory]));
     }
 
-    public function testGlobalRuleWithNoChannelOrCategoryIsAlwaysIncluded(): void
+    public function testGlobalRuleWithNoDependentObjectsIsAlwaysIncluded(): void
     {
         $channel = $this->makeElement(10);
         $category = $this->makeElement(30);
 
-        $rule = new FakeQualityRule(id: 1, channel: null, category: null);
+        $rule = new FakeQualityRule(id: 1, dependentObjects: []);
 
-        $resolver = new QualityConfigurationResolver('channels', 'categories');
+        $resolver = new QualityConfigurationResolver();
 
-        self::assertSame([$rule], $resolver->filter([$rule], $channel, null));
-        self::assertSame([$rule], $resolver->filter([$rule], null, $category));
-        self::assertSame([$rule], $resolver->filter([$rule], null, null));
+        self::assertSame([$rule], $resolver->filter([$rule], [$channel]));
+        self::assertSame([$rule], $resolver->filter([$rule], [$category]));
+        self::assertSame([$rule], $resolver->filter([$rule], []));
     }
 
     public function testInactiveRuleIsExcludedEvenWhenScopeMatches(): void
     {
         $channel = $this->makeElement(10);
 
-        $rule = new FakeQualityRule(id: 1, channel: $channel, active: false);
+        $rule = new FakeQualityRule(id: 1, dependentObjects: [$channel], active: false);
 
-        $resolver = new QualityConfigurationResolver('channels', 'categories');
+        $resolver = new QualityConfigurationResolver();
 
-        self::assertSame([], $resolver->filter([$rule], $channel, null));
+        self::assertSame([], $resolver->filter([$rule], [$channel]));
     }
 
     private function makeElement(int $id): FakeCoreFieldObject

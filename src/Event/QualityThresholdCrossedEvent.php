@@ -10,8 +10,7 @@ final class QualityThresholdCrossedEvent
 {
     public function __construct(
         public readonly Concrete $object,
-        public readonly ?Concrete $channel,
-        public readonly ?Concrete $category,
+        public readonly Concrete $scopeObject,
         public readonly string $direction,
         public readonly float $score,
     ) {
@@ -22,14 +21,14 @@ final class QualityThresholdCrossedEvent
         return $this->object;
     }
 
-    public function getChannel(): ?Concrete
+    /**
+     * The scope object (e.g. a Channel or Category, or any other DataObject) this threshold
+     * crossing was evaluated against. Non-nullable: one event is dispatched per scope object, see
+     * ProductQualityPostUpdateListener::evaluateScope().
+     */
+    public function getScopeObject(): Concrete
     {
-        return $this->channel;
-    }
-
-    public function getCategory(): ?Concrete
-    {
-        return $this->category;
+        return $this->scopeObject;
     }
 
     /**

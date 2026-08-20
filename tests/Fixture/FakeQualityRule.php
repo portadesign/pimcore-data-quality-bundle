@@ -9,11 +9,17 @@ use Portadesign\DataQualityBundle\Contract\QualityConfigurationInterface;
 
 final class FakeQualityRule implements QualityConfigurationInterface
 {
+    /**
+     * $id accepts int|string (test call sites overwhelmingly pass plain int literals like
+     * `id: 1`) and is normalized to string in getId(), matching
+     * QualityConfigurationInterface::getId()'s ?string return type.
+     *
+     * @param list<Concrete> $dependentObjects
+     */
     public function __construct(
-        private readonly ?int $id = 1,
-        private readonly ?string $name = 'Fake rule',
-        private readonly ?Concrete $channel = null,
-        private readonly ?Concrete $category = null,
+        private readonly int|string|null $id = 1,
+        private readonly ?string $description = 'Fake rule',
+        private readonly array $dependentObjects = [],
         private readonly ?string $targetType = 'coreField',
         private readonly ?string $targetKey = 'ean',
         private readonly ?string $requirementLevel = 'mandatory',
@@ -24,24 +30,19 @@ final class FakeQualityRule implements QualityConfigurationInterface
     ) {
     }
 
-    public function getId(): ?int
+    public function getId(): ?string
     {
-        return $this->id;
+        return $this->id !== null ? (string) $this->id : null;
     }
 
-    public function getName(): ?string
+    public function getDescription(): ?string
     {
-        return $this->name;
+        return $this->description;
     }
 
-    public function getChannel(): ?Concrete
+    public function getDependentObjects(): array
     {
-        return $this->channel;
-    }
-
-    public function getCategory(): ?Concrete
-    {
-        return $this->category;
+        return $this->dependentObjects;
     }
 
     public function getTargetType(): ?string

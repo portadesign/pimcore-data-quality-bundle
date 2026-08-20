@@ -1,5 +1,5 @@
 import React from 'react'
-import { Alert, Card, Empty, List, Progress, Space, Spin, Statistic, Tag, Typography } from 'antd'
+import { Alert, Card, Empty, Progress, Space, Spin, Statistic, Tooltip, Typography } from 'antd'
 import { useQualityReport } from '../hooks/use-quality-report'
 import { type ChannelQualityResult, type CategoryQualityResult, type QualityCheck, type QualityResultDto } from '../types'
 
@@ -14,31 +14,83 @@ const progressStatus = (result: QualityResultDto): 'success' | 'exception' | 'ac
   return result.score >= 100 ? 'success' : 'active'
 }
 
-const FailingChecks = ({ checks }: { checks: QualityCheck[] }): React.JSX.Element | null => {
-  const failing = checks.filter((check) => !check.satisfied)
+type LightColor = 'red' | 'gold' | 'green'
 
-  if (failing.length === 0) {
+// Green whenever satisfied, regardless of level - a satisfied optional check is just as "done" as
+// a satisfied mandatory one. Only the failure severity differs: an unsatisfied mandatory check
+// blocks readiness (red), while unsatisfied recommended/optional checks are advisory (yellow).
+const checkColor = (check: QualityCheck): LightColor => {
+  if (check.satisfied) {
+    return 'green'
+  }
+  return check.level === 'mandatory' ? 'red' : 'gold'
+}
+
+const colorHex: Record<LightColor, string> = {
+  red: '#f5222d',
+  gold: '#faad14',
+  green: '#52c41a'
+}
+
+const colorRank: Record<LightColor, number> = { red: 0, gold: 1, green: 2 }
+
+// Per-field traffic light grid: one chip per rule, colored red/yellow/green, sorted worst-first so
+// the fields needing attention are immediately visible without reading a list of prose. Labeled by
+// targetKey (the actual object/Classification-Store field the rule checks) when available, falling
+// back to the rule's own description for unscoped or legacy rules with no targetKey - the full
+// rule name + message is always available on hover via the tooltip.
+const FieldTrafficLights = ({ checks }: { checks: QualityCheck[] }): React.JSX.Element | null => {
+  if (checks.length === 0) {
     return null
   }
 
+  const sorted = [...checks].sort((a, b) => colorRank[checkColor(a)] - colorRank[checkColor(b)])
+
   return (
-    <List
-      size='small'
-      dataSource={failing}
-      renderItem={(check) => (
-        <List.Item>
-          <Space direction='vertical' size={0} style={{ width: '100%' }}>
-            <Space>
-              <Tag color={check.level === 'mandatory' ? 'red' : 'orange'}>{check.level}</Tag>
-              <Typography.Text strong>{check.ruleName}</Typography.Text>
-            </Space>
-            {check.message !== null && (
-              <Typography.Text type='secondary'>{check.message}</Typography.Text>
-            )}
-          </Space>
-        </List.Item>
-      )}
-    />
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+      {sorted.map((check) => {
+        const color = checkColor(check)
+        const label = check.targetKey ?? check.ruleName
+
+        return (
+          <Tooltip
+            key={check.ruleId}
+            title={
+              <Space direction='vertical' size={0}>
+                <Typography.Text strong style={{ color: 'inherit' }}>{check.ruleName}</Typography.Text>
+                <Typography.Text style={{ color: 'inherit' }}>{check.level} · weight {check.weight}</Typography.Text>
+                {check.message !== null && <Typography.Text style={{ color: 'inherit' }}>{check.message}</Typography.Text>}
+              </Space>
+            }
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '4px 10px',
+                borderRadius: 14,
+                border: `1px solid ${colorHex[color]}`,
+                backgroundColor: `color-mix(in srgb, ${colorHex[color]} 12%, transparent)`,
+                cursor: 'default'
+              }}
+            >
+              <span
+                style={{
+                  display: 'inline-block',
+                  width: 9,
+                  height: 9,
+                  borderRadius: '50%',
+                  backgroundColor: colorHex[color],
+                  flexShrink: 0
+                }}
+              />
+              <Typography.Text style={{ fontSize: 12 }}>{label}</Typography.Text>
+            </div>
+          </Tooltip>
+        )
+      })}
+    </div>
   )
 }
 
@@ -53,7 +105,7 @@ const ScopeResultCard = ({ title, result }: { title: string, result: QualityResu
           valueStyle={{ color: result.mandatoryComplete ? '#3f8600' : '#cf1322' }}
         />
       </Space>
-      <FailingChecks checks={result.checks} />
+      <FieldTrafficLights checks={result.checks} />
     </Space>
   </Card>
 )

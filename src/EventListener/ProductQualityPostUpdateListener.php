@@ -15,7 +15,7 @@ use Portadesign\DataQualityBundle\Resolver\QualityConfigurationResolver;
 use Portadesign\DataQualityBundle\Service\QualityEvaluationService;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 /**
@@ -24,7 +24,7 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
  * \Pimcore\Event\DataObjectEvents::POST_UPDATE). Never calls ->save() on any DataObject: this runs
  * inside the save transaction of the very object that triggered it.
  */
-final class ProductQualityPostUpdateListener
+final class ProductQualityPostUpdateListener implements EventSubscriberInterface
 {
     private static bool $inProgress = false;
 
@@ -41,7 +41,13 @@ final class ProductQualityPostUpdateListener
     ) {
     }
 
-    #[AsEventListener(event: DataObjectEvents::POST_UPDATE)]
+    public static function getSubscribedEvents(): array
+    {
+        return [
+            DataObjectEvents::POST_UPDATE => 'onPostUpdate',
+        ];
+    }
+
     public function onPostUpdate(DataObjectEvent $event): void
     {
         if (self::$inProgress) {
@@ -63,7 +69,11 @@ final class ProductQualityPostUpdateListener
         try {
             // Loaded once and reused across every channel/category axis below, instead of each
             // evaluate() call re-querying+re-filtering the full active-rule listing.
-            $activeRules = $this->resolver->loadActiveRules();
+            // Hardcoded to 'Product' rather than derived from $subject::class: this listener only
+            // ever fires for Product (guarded above), and Pimcore's generated Product class's
+            // short name IS "Product" already, so deriving it would add indirection without
+            // changing the result — see class-level docblock.
+            $activeRules = $this->resolver->loadActiveRules('Product');
 
             $this->evaluateChannels($subject, $activeRules);
             $this->evaluateCategories($subject, $activeRules);
@@ -95,7 +105,7 @@ final class ProductQualityPostUpdateListener
                 continue;
             }
 
-            $this->evaluateScope($product, $channel, null, 'channel', $activeRules);
+            $this->evaluateScope($product, $channel, 'channel', $activeRules);
         }
     }
 
@@ -122,26 +132,20 @@ final class ProductQualityPostUpdateListener
                 continue;
             }
 
-            $this->evaluateScope($product, null, $category, 'category', $activeRules);
+            $this->evaluateScope($product, $category, 'category', $activeRules);
         }
     }
 
     /**
      * @param list<QualityConfigurationInterface> $activeRules
      */
-    private function evaluateScope(Product $product, ?Concrete $channel, ?Concrete $category, string $scopeType, array $activeRules): void
+    private function evaluateScope(Product $product, Concrete $scopeObject, string $scopeType, array $activeRules): void
     {
-        $scope = $channel ?? $category;
-
-        if ($scope === null) {
-            return;
-        }
-
         try {
-            $result = $this->evaluationService->evaluate($product, $channel, $category, $activeRules);
+            $result = $this->evaluationService->evaluate($product, [$scopeObject], $activeRules);
             $mandatoryComplete = $result->mandatoryComplete;
 
-            $previous = $this->stateRepository->getPreviousState((int) $product->getId(), $scopeType, (int) $scope->getId());
+            $previous = $this->stateRepository->getPreviousState((int) $product->getId(), $scopeType, (int) $scopeObject->getId());
 
             $shouldDispatch = false;
             $direction = 'reached';
@@ -161,7 +165,7 @@ final class ProductQualityPostUpdateListener
             $this->stateRepository->upsertState(
                 (int) $product->getId(),
                 $scopeType,
-                (int) $scope->getId(),
+                (int) $scopeObject->getId(),
                 $mandatoryComplete,
                 $result->score,
             );
@@ -169,8 +173,7 @@ final class ProductQualityPostUpdateListener
             if ($shouldDispatch) {
                 $this->eventDispatcher->dispatch(new QualityThresholdCrossedEvent(
                     object: $product,
-                    channel: $channel,
-                    category: $category,
+                    scopeObject: $scopeObject,
                     direction: $direction,
                     score: $result->score,
                 ));
@@ -180,7 +183,7 @@ final class ProductQualityPostUpdateListener
             // save in flight.
             $this->logger->error('ProductQualityPostUpdateListener: failed evaluating {scopeType} scope {scopeId} for product {productId}: {message}', [
                 'scopeType' => $scopeType,
-                'scopeId' => $scope->getId(),
+                'scopeId' => $scopeObject->getId(),
                 'productId' => $product->getId(),
                 'message' => $exception->getMessage(),
                 'exception' => $exception,

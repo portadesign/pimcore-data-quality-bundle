@@ -41,8 +41,8 @@ final class QualityReportControllerTest extends TestCase
         // rule feed their respective per-axis entries. All satisfied, so every score is 100.
         $rules = [
             new FakeQualityRule(id: 1, requirementLevel: 'mandatory', weight: 1.0),
-            new FakeQualityRule(id: 2, channel: $channel, requirementLevel: 'mandatory', weight: 1.0),
-            new FakeQualityRule(id: 3, category: $category, requirementLevel: 'mandatory', weight: 1.0),
+            new FakeQualityRule(id: 2, dependentObjects: [$channel], requirementLevel: 'mandatory', weight: 1.0),
+            new FakeQualityRule(id: 3, dependentObjects: [$category], requirementLevel: 'mandatory', weight: 1.0),
         ];
 
         $controller = $this->makeController($rules, [$channel, $category]);
@@ -105,21 +105,21 @@ final class QualityReportControllerTest extends TestCase
         $resolver = $this->createStub(QualityConfigurationResolver::class);
         $resolver->method('loadActiveRules')->willReturn($rules);
         $resolver->method('filter')->willReturnCallback(
-            static function (array $rules, $channel, $category) {
+            static function (array $rules, array $scopeObjects) {
+                $scopeIds = array_map(static fn (FakeCoreFieldObject $scopeObject): ?int => $scopeObject->getId(), $scopeObjects);
+
                 return array_values(array_filter(
                     $rules,
-                    static function (FakeQualityRule $rule) use ($channel, $category): bool {
-                        $ruleChannel = $rule->getChannel();
-                        if ($ruleChannel !== null && (! $channel || $ruleChannel->getId() !== $channel->getId())) {
-                            return false;
+                    static function (FakeQualityRule $rule) use ($scopeIds): bool {
+                        $dependentObjects = $rule->getDependentObjects();
+
+                        if ($dependentObjects === []) {
+                            return true;
                         }
 
-                        $ruleCategory = $rule->getCategory();
-                        if ($ruleCategory !== null && (! $category || $ruleCategory->getId() !== $category->getId())) {
-                            return false;
-                        }
+                        $dependentIds = array_map(static fn (FakeCoreFieldObject $dependentObject): ?int => $dependentObject->getId(), $dependentObjects);
 
-                        return true;
+                        return array_intersect($dependentIds, $scopeIds) !== [];
                     }
                 ));
             }

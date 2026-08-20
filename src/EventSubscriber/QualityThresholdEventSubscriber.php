@@ -8,9 +8,9 @@ use Portadesign\DataQualityBundle\Contract\QualityObserverInterface;
 use Portadesign\DataQualityBundle\Event\QualityThresholdCrossedEvent;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\TaggedIterator;
-use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
-final class QualityThresholdEventSubscriber
+final class QualityThresholdEventSubscriber implements EventSubscriberInterface
 {
     /**
      * @param iterable<QualityObserverInterface> $observers
@@ -22,7 +22,13 @@ final class QualityThresholdEventSubscriber
     ) {
     }
 
-    #[AsEventListener(event: QualityThresholdCrossedEvent::class)]
+    public static function getSubscribedEvents(): array
+    {
+        return [
+            QualityThresholdCrossedEvent::class => 'onThresholdCrossed',
+        ];
+    }
+
     public function onThresholdCrossed(QualityThresholdCrossedEvent $event): void
     {
         foreach ($this->observers as $observer) {

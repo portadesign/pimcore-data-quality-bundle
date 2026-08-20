@@ -9,6 +9,7 @@ use Portadesign\DataQualityBundle\Exception\RuleConfigurationException;
 use Portadesign\DataQualityBundle\RuleChecker\FieldPresenceChecker;
 use Portadesign\DataQualityBundle\Tests\Fixture\FakeCoreFieldObject;
 use Portadesign\DataQualityBundle\Tests\Fixture\FakeQualityRule;
+use Portadesign\DataQualityBundle\Tests\Fixture\FakeValidLanguageProvider;
 
 final class FieldPresenceCheckerTest extends TestCase
 {
@@ -16,7 +17,7 @@ final class FieldPresenceCheckerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->checker = new FieldPresenceChecker();
+        $this->checker = new FieldPresenceChecker(new FakeValidLanguageProvider(['en', 'cs']));
     }
 
     public function testSupportsCoreFieldTargetTypeOnly(): void
@@ -89,5 +90,43 @@ final class FieldPresenceCheckerTest extends TestCase
         $this->expectException(RuleConfigurationException::class);
 
         $this->checker->check($object, new FakeQualityRule(targetKey: null));
+    }
+
+    public function testLocalizedFieldPresentInEveryConfiguredLanguageSatisfiesTheRule(): void
+    {
+        $object = new FakeCoreFieldObject();
+        $object->setTitle(['en' => 'Hello', 'cs' => 'Ahoj']);
+
+        self::assertTrue($this->checker->check($object, new FakeQualityRule(targetKey: 'title')));
+    }
+
+    public function testLocalizedFieldMissingInOneConfiguredLanguageDoesNotSatisfyTheRule(): void
+    {
+        $object = new FakeCoreFieldObject();
+        // 'cs' deliberately left unset - this is exactly the bug being fixed: a plain getter()
+        // (no $language arg) would only ever see the current request/session locale, so
+        // whether this rule passes used to depend on which locale happened to be active.
+        $object->setTitle(['en' => 'Hello']);
+
+        self::assertFalse($this->checker->check($object, new FakeQualityRule(targetKey: 'title')));
+    }
+
+    public function testLocalizedFieldEmptyInEveryConfiguredLanguageDoesNotSatisfyTheRule(): void
+    {
+        $object = new FakeCoreFieldObject();
+
+        self::assertFalse($this->checker->check($object, new FakeQualityRule(targetKey: 'title')));
+    }
+
+    public function testNonLocalizedFieldIsUnaffectedByConfiguredLanguages(): void
+    {
+        $checker = new FieldPresenceChecker(new FakeValidLanguageProvider(['en', 'cs', 'de']));
+        $object = new FakeCoreFieldObject();
+        $object->setEan('1234567890123');
+
+        // A plain (non-localized) getter must be called exactly once, with no arguments -
+        // iterating $languages for it would be both wrong (it doesn't vary by language) and
+        // wasteful.
+        self::assertTrue($checker->check($object, new FakeQualityRule(targetKey: 'ean')));
     }
 }

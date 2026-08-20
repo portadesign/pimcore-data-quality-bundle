@@ -8,22 +8,25 @@ use Pimcore\Model\Element\AbstractElement;
 
 interface QualityConfigurationInterface
 {
-    public function getId(): ?int;
+    /**
+     * DataQualityRule field-collection items have no DataObject-style int primary key (no
+     * oo_id) — only a position (getIndex()) within the owning DataQualityConfiguration object
+     * (getObject()). Implementations synthesize a composite id from those, hence string here
+     * rather than int.
+     */
+    public function getId(): ?string;
 
-    public function getName(): ?string;
+    public function getDescription(): ?string;
 
     /**
-     * Declared as ?AbstractElement (not ?Concrete) to match the return type Pimcore's class
-     * generator emits for manyToOneRelation fields — the class definition restricts it to
-     * Channel objects only (objectsAllowed: true, assetsAllowed/documentsAllowed: false), so in
-     * practice this is always a Concrete or null.
+     * The set of DataObjects this rule is scoped to, of any class (no restriction). An empty list
+     * means the rule is unscoped — it always applies, regardless of which object(s) the evaluated
+     * scope is checked against. Declared as a list of AbstractElement (not Concrete) to match the
+     * return type Pimcore's class generator emits for manyToManyObjectRelation fields.
+     *
+     * @return list<AbstractElement>
      */
-    public function getChannel(): ?AbstractElement;
-
-    /**
-     * @see self::getChannel()
-     */
-    public function getCategory(): ?AbstractElement;
+    public function getDependentObjects(): array;
 
     /**
      * One of coreField|classificationStoreKey.

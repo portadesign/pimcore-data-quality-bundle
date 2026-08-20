@@ -20,6 +20,28 @@ final class FakeCoreFieldObject extends Concrete
 
     private array $tags = [];
 
+    /**
+     * Stand-in for a localizedfields-backed getter (e.g. Product::getName()): Pimcore's codegen
+     * gives these an optional `?string $language = null` parameter, which is what
+     * FieldPresenceChecker::isLocalizedField() detects via reflection.
+     *
+     * @var array<string, ?string>
+     */
+    private array $title = [];
+
+    /**
+     * @param array<string, ?string> $valuesByLanguage
+     */
+    public function setTitle(array $valuesByLanguage): void
+    {
+        $this->title = $valuesByLanguage;
+    }
+
+    public function getTitle(?string $language = null): ?string
+    {
+        return $this->title[$language ?? 'default'] ?? null;
+    }
+
     public function setEan(?string $ean): void
     {
         $this->ean = $ean;

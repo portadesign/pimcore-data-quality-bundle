@@ -26,17 +26,24 @@ final class QualityEvaluationService
     }
 
     /**
-     * @param list<QualityConfigurationInterface>|null $activeRules Pre-fetched result of
-     *                                                               QualityConfigurationResolver::loadActiveRules(), to avoid
-     *                                                               re-querying when evaluating multiple channel/category axes for
-     *                                                               the same save. Pass null to have this call resolve/query rules
-     *                                                               itself (single-axis convenience).
+     * @param list<Concrete>                            $scopeObjects Objects the evaluated rule set is
+     *                                                                  matched against — a rule with a
+     *                                                                  non-empty `dependentObjects` list
+     *                                                                  applies only if at least one of
+     *                                                                  its dependent objects appears
+     *                                                                  here. Pass an empty list to
+     *                                                                  evaluate only unscoped rules.
+     * @param list<QualityConfigurationInterface>|null  $activeRules  Pre-fetched result of
+     *                                                                  QualityConfigurationResolver::loadActiveRules(), to avoid
+     *                                                                  re-querying when evaluating multiple scopes for
+     *                                                                  the same save. Pass null to have this call resolve/query rules
+     *                                                                  itself (single-scope convenience).
      */
-    public function evaluate(Concrete $object, ?Concrete $channel = null, ?Concrete $category = null, ?array $activeRules = null): QualityResult
+    public function evaluate(Concrete $object, array $scopeObjects = [], ?array $activeRules = null): QualityResult
     {
         $rules = $activeRules !== null
-            ? $this->resolver->filter($activeRules, $channel, $category)
-            : $this->resolver->resolve($channel, $category);
+            ? $this->resolver->filter($activeRules, $scopeObjects)
+            : $this->resolver->resolve($scopeObjects);
 
         $checks = [];
         $mandatorySatisfiedWeight = 0.0;
@@ -50,12 +57,15 @@ final class QualityEvaluationService
             $weight = (float) $rule->getWeight();
 
             $checks[] = new QualityCheck(
+                // getId() already returns ?string (a synthetic "objectId:index" composite for
+                // field-collection-backed rules) — cast only guards against the null case.
                 ruleId: (string) $rule->getId(),
-                ruleName: (string) $rule->getName(),
+                ruleName: (string) $rule->getDescription(),
                 satisfied: $satisfied,
                 level: $level,
                 weight: $weight,
                 message: $rule->getMessage(),
+                targetKey: $rule->getTargetKey(),
             );
 
             if ($level === 'mandatory') {
@@ -79,8 +89,8 @@ final class QualityEvaluationService
         return new QualityResult(
             score: $score,
             mandatoryComplete: $mandatoryComplete,
-            channelId: $channel?->getId(),
-            categoryId: $category?->getId(),
+            channelId: $this->findScopeId($scopeObjects, 'Channel'),
+            categoryId: $this->findScopeId($scopeObjects, 'Category'),
             checks: $checks,
         );
     }
@@ -95,9 +105,29 @@ final class QualityEvaluationService
 
         throw new RuleConfigurationException(\sprintf(
             'No rule checker supports rule "%s" (targetType "%s", ruleType "%s").',
-            (string) $rule->getName(),
+            (string) $rule->getDescription(),
             (string) $rule->getTargetType(),
             (string) $rule->getRuleType(),
         ));
+    }
+
+    /**
+     * QualityResult keeps dedicated channelId/categoryId fields for backwards-compatible report
+     * shape even though $scopeObjects is now class-agnostic — derived here by matching the first
+     * scope object of the given class name, since in practice a Product's own scope objects are
+     * still exactly Channel/Category instances (see ProductQualityPostUpdateListener /
+     * QualityReportController, both of which still gather scope per Channel/Category relation).
+     *
+     * @param list<Concrete> $scopeObjects
+     */
+    private function findScopeId(array $scopeObjects, string $className): ?int
+    {
+        foreach ($scopeObjects as $scopeObject) {
+            if ($scopeObject->getClassName() === $className) {
+                return $scopeObject->getId();
+            }
+        }
+
+        return null;
     }
 }

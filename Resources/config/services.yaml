@@ -10,13 +10,26 @@ services:
     Portadesign\DataQualityBundle\Resolver\:
         resource: '../../src/Resolver/*'
 
-    Portadesign\DataQualityBundle\Resolver\QualityConfigurationResolver:
+    # Public: resolved at runtime via Pimcore::getContainer()->get() from the '@ServiceId'
+    # optionsProviderClass string on the targetClass/targetKey Select field definitions (see
+    # \Pimcore\Model\DataObject\ClassDefinition\Helper\ClassResolver::resolve()) rather than
+    # injected as a constructor dependency anywhere in this bundle — Symfony's container compiler
+    # prunes private services with no static dependents, which would make that runtime lookup fail
+    # with "service has been removed or inlined" despite the class definition referencing it.
+    Portadesign\DataQualityBundle\OptionProvider\:
+        resource: '../../src/OptionProvider/*'
+        public: true
+
+    Portadesign\DataQualityBundle\OptionProvider\TargetKeyOptionsProvider:
+        public: true
         arguments:
-            $channelRelationFieldName: '%portadesign_data_quality.channel_relation_field_name%'
-            $categoryRelationFieldName: '%portadesign_data_quality.category_relation_field_name%'
+            $classificationStoreId: '%portadesign_data_quality.classification_store_id%'
 
     Portadesign\DataQualityBundle\Contract\ClassificationStoreKeyResolverInterface:
         class: Portadesign\DataQualityBundle\Support\PimcoreClassificationStoreKeyResolver
+
+    Portadesign\DataQualityBundle\Contract\ValidLanguageProviderInterface:
+        class: Portadesign\DataQualityBundle\Support\PimcoreValidLanguageProvider
 
     Portadesign\DataQualityBundle\RuleChecker\:
         resource: '../../src/RuleChecker/*'

@@ -61,11 +61,12 @@ final class QualityThresholdEventSubscriberTest extends TestCase
     private function makeEvent(string $direction): QualityThresholdCrossedEvent
     {
         $product = new FakeCoreFieldObject();
+        $scopeObject = new FakeCoreFieldObject();
+        $scopeObject->setId(1);
 
         return new QualityThresholdCrossedEvent(
             object: $product,
-            channel: null,
-            category: null,
+            scopeObject: $scopeObject,
             direction: $direction,
             score: 100.0,
         );

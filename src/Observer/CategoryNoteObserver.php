@@ -11,9 +11,13 @@ use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 #[AutoconfigureTag('quality.observer')]
 final class CategoryNoteObserver extends AbstractQualityNoteObserver
 {
+    private const string CLASS_NAME = 'Category';
+
     protected function getScope(QualityThresholdCrossedEvent $event): ?Concrete
     {
-        return $event->getCategory();
+        $scopeObject = $event->getScopeObject();
+
+        return $scopeObject->getClassName() === self::CLASS_NAME ? $scopeObject : null;
     }
 
     protected function getScopeLabel(): string

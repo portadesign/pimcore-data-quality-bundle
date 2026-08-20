@@ -11,4 +11,12 @@ interface ClassificationStoreKeyResolverInterface
      * null when the code is unknown.
      */
     public function resolveKeyId(string $keyCode, int $storeId): ?int;
+
+    /**
+     * Lists every enabled Classification Store key configured in the given store, for use as
+     * dynamic select options (see TargetKeyOptionsProvider).
+     *
+     * @return list<array{code: string, title: ?string}>
+     */
+    public function listActiveKeys(int $storeId): array;
 }
