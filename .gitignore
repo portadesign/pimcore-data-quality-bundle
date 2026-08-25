@@ -3,4 +3,3 @@
 .phpunit.result.cache
 composer.lock
 /assets/node_modules/
-/public/build/
