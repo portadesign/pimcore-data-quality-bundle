@@ -30,7 +30,7 @@ export const QualityReportMountExtension: AbstractModule = {
     objectTabManager.register({
       key: 'quality-report',
       label: 'Data Quality',
-      icon: <Icon value='data-quality' />,
+      icon: <Icon value='check-circle' />,
       children: <QualityReportTabContainer />,
       userPermission: 'portadesign_data_quality_report',
       // This tab only makes sense for Product objects — the quality scoring engine and the

@@ -148,7 +148,7 @@ export const QualityReportTab = ({ objectId }: QualityReportTabProps): React.JSX
 
       {data.byChannel.length > 0 && (
         <div>
-          <Typography.Title level={5}>By channel</Typography.Title>
+          <Typography.Title level={5} style={{ paddingLeft: 12 }}>By channel</Typography.Title>
           {data.byChannel.map((channel: ChannelQualityResult) => (
             <ScopeResultCard key={channel.channelId} title={channel.channelName} result={channel} />
           ))}
@@ -157,7 +157,7 @@ export const QualityReportTab = ({ objectId }: QualityReportTabProps): React.JSX
 
       {data.byCategory.length > 0 && (
         <div>
-          <Typography.Title level={5}>By category</Typography.Title>
+          <Typography.Title level={5} style={{ paddingLeft: 12 }}>By category</Typography.Title>
           {data.byCategory.map((category: CategoryQualityResult) => (
             <ScopeResultCard key={category.categoryId} title={category.categoryName} result={category} />
           ))}
