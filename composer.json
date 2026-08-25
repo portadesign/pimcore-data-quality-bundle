@@ -1,39 +1,45 @@
 {
   "name": "portadesign/pimcore-data-quality-bundle",
-  "license": "GPL-3.0-or-later",
+  "description": "Data quality scoring for Pimcore Data Objects — configurable per-channel/per-category rules with presence checks, weighted mandatory scoring, and threshold-crossed observers.",
   "type": "pimcore-bundle",
-  "description": "Data Quality Bundle for Pimcore",
-  "keywords": [
-    "pimcore",
-    "data quality",
-    "dataquality"
-  ],
-  "homepage": "https://basilicom.de",
+  "license": "GPL-3.0-or-later",
   "authors": [
     {
-      "name": "Conrad Guelzow",
-      "email": "conrad.guelzow@basilicom.de"
-    },
-    {
-      "name": "Basilicom GmbH",
-      "homepage": "https://basilicom.de"
+      "name": "PORTA DESIGN",
+      "email": "development@portadesign.cz",
+      "homepage": "https://portadesign.cz",
+      "role": "Developer"
     }
   ],
+  "minimum-stability": "stable",
   "require": {
-    "php": ">=8.0",
-    "pimcore/pimcore": ">=11",
-    "pimcore/admin-ui-classic-bundle": "^1.0"
+    "php": "~8.4.0 || ~8.5.0",
+    "pimcore/pimcore": "^2026.1"
   },
   "autoload": {
     "psr-4": {
-      "Basilicom\\DataQualityBundle\\": "src/"
+      "Portadesign\\DataQualityBundle\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Portadesign\\DataQualityBundle\\Tests\\": "tests/"
     }
   },
   "extra": {
     "pimcore": {
       "bundles": [
-        "Basilicom\\DataQualityBundle\\DataQualityBundle"
+        "Portadesign\\DataQualityBundle\\PortadesignDataQualityBundle"
       ]
+    }
+  },
+  "require-dev": {
+    "phpstan/phpstan": "^2.1",
+    "phpunit/phpunit": "^11.0"
+  },
+  "config": {
+    "allow-plugins": {
+      "php-http/discovery": true
     }
   }
 }
