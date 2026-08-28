@@ -1,0 +1,44 @@
+{
+  "allFiles": [
+    "/bundles/portadesigndataquality/build/b10b1832-e074-48ee-98bb-0958b68fa07b/static/js/main.4108d286.js",
+    "/bundles/portadesigndataquality/build/b10b1832-e074-48ee-98bb-0958b68fa07b/static/js/remoteEntry.js",
+    "/bundles/portadesigndataquality/build/b10b1832-e074-48ee-98bb-0958b68fa07b/static/js/async/__federation_expose_default_export.079f323f.js",
+    "/bundles/portadesigndataquality/build/b10b1832-e074-48ee-98bb-0958b68fa07b/static/js/async/331.dcb41f20.js",
+    "/bundles/portadesigndataquality/build/b10b1832-e074-48ee-98bb-0958b68fa07b/static/js/109.7e82b243.js",
+    "/bundles/portadesigndataquality/build/b10b1832-e074-48ee-98bb-0958b68fa07b/mf-stats.json",
+    "/bundles/portadesigndataquality/build/b10b1832-e074-48ee-98bb-0958b68fa07b/mf-manifest.json",
+    "/bundles/portadesigndataquality/build/b10b1832-e074-48ee-98bb-0958b68fa07b/main.html"
+  ],
+  "entries": {
+    "main": {
+      "html": [
+        "/bundles/portadesigndataquality/build/b10b1832-e074-48ee-98bb-0958b68fa07b/main.html"
+      ],
+      "initial": {
+        "js": [
+          "/bundles/portadesigndataquality/build/b10b1832-e074-48ee-98bb-0958b68fa07b/static/js/109.7e82b243.js",
+          "/bundles/portadesigndataquality/build/b10b1832-e074-48ee-98bb-0958b68fa07b/static/js/main.4108d286.js"
+        ]
+      },
+      "async": {
+        "js": [
+          "/bundles/portadesigndataquality/build/b10b1832-e074-48ee-98bb-0958b68fa07b/static/js/async/331.dcb41f20.js"
+        ]
+      }
+    },
+    "portadesign_data_quality_bundle": {
+      "initial": {
+        "js": [
+          "/bundles/portadesigndataquality/build/b10b1832-e074-48ee-98bb-0958b68fa07b/static/js/remoteEntry.js"
+        ]
+      },
+      "async": {
+        "js": [
+          "/bundles/portadesigndataquality/build/b10b1832-e074-48ee-98bb-0958b68fa07b/static/js/async/331.dcb41f20.js",
+          "/bundles/portadesigndataquality/build/b10b1832-e074-48ee-98bb-0958b68fa07b/static/js/async/__federation_expose_default_export.079f323f.js"
+        ]
+      }
+    }
+  },
+  "integrity": {}
+}

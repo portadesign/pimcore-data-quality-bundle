@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Portadesign\DataQualityBundle\Tests\Controller;
 
 use PHPUnit\Framework\TestCase;
+use Portadesign\DataQualityBundle\Contract\ClassificationStoreKeyResolverInterface;
 use Portadesign\DataQualityBundle\Controller\QualityReportController;
 use Portadesign\DataQualityBundle\Resolver\QualityConfigurationResolver;
 use Portadesign\DataQualityBundle\Service\QualityEvaluationService;
@@ -130,7 +131,10 @@ final class QualityReportControllerTest extends TestCase
             true
         ));
 
-        $evaluationService = new QualityEvaluationService([$checker], $resolver);
+        $keyResolver = $this->createStub(ClassificationStoreKeyResolverInterface::class);
+        $keyResolver->method('listActiveKeys')->willReturn([]);
+
+        $evaluationService = new QualityEvaluationService([$checker], $resolver, $keyResolver, 1);
 
         return new QualityReportController(
             $evaluationService,

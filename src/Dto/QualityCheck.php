@@ -13,11 +13,12 @@ final class QualityCheck
         public readonly string $level,
         public readonly float $weight,
         public readonly ?string $targetKey = null,
+        public readonly string $label = '',
     ) {
     }
 
     /**
-     * @return array{ruleId: string, ruleName: string, satisfied: bool, level: string, weight: float, targetKey: ?string}
+     * @return array{ruleId: string, ruleName: string, satisfied: bool, level: string, weight: float, targetKey: ?string, label: string}
      */
     public function toArray(): array
     {
@@ -28,6 +29,7 @@ final class QualityCheck
             'level' => $this->level,
             'weight' => $this->weight,
             'targetKey' => $this->targetKey,
+            'label' => $this->label,
         ];
     }
 }

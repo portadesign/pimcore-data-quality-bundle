@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Portadesign\DataQualityBundle\Tests\Service;
 
 use PHPUnit\Framework\TestCase;
+use Portadesign\DataQualityBundle\Contract\ClassificationStoreKeyResolverInterface;
 use Portadesign\DataQualityBundle\Exception\RuleConfigurationException;
 use Portadesign\DataQualityBundle\Resolver\QualityConfigurationResolver;
 use Portadesign\DataQualityBundle\Service\QualityEvaluationService;
@@ -142,6 +143,9 @@ final class QualityEvaluationServiceTest extends TestCase
         $resolver = $this->createStub(QualityConfigurationResolver::class);
         $resolver->method('resolve')->willReturn($rules);
 
-        return new QualityEvaluationService($checkers, $resolver);
+        $keyResolver = $this->createStub(ClassificationStoreKeyResolverInterface::class);
+        $keyResolver->method('listActiveKeys')->willReturn([]);
+
+        return new QualityEvaluationService($checkers, $resolver, $keyResolver, 1);
     }
 }

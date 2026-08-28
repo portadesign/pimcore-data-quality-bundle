@@ -36,9 +36,9 @@ const colorRank: Record<LightColor, number> = { red: 0, gold: 1, green: 2 }
 
 // Per-field traffic light grid: one chip per rule, colored red/yellow/green, sorted worst-first so
 // the fields needing attention are immediately visible without reading a list of prose. Labeled by
-// targetKey (the actual object/Classification-Store field the rule checks) when available, falling
-// back to the rule's own description for unscoped or legacy rules with no targetKey - the full
-// rule name is always available on hover via the tooltip.
+// the resolved field/Classification-Store title (falling back to the raw targetKey, then the
+// rule's own description for unscoped or legacy rules with no targetKey) - the full rule name is
+// always available on hover via the tooltip.
 const FieldTrafficLights = ({ checks }: { checks: QualityCheck[] }): React.JSX.Element | null => {
   if (checks.length === 0) {
     return null
@@ -50,7 +50,7 @@ const FieldTrafficLights = ({ checks }: { checks: QualityCheck[] }): React.JSX.E
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
       {sorted.map((check) => {
         const color = checkColor(check)
-        const label = check.targetKey ?? check.ruleName
+        const label = check.label !== '' ? check.label : (check.targetKey ?? check.ruleName)
 
         return (
           <Tooltip

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Portadesign\DataQualityBundle\Service;
 
+use Pimcore\Model\DataObject\ClassDefinition;
 use Pimcore\Model\DataObject\Concrete;
+use Portadesign\DataQualityBundle\Contract\ClassificationStoreKeyResolverInterface;
 use Portadesign\DataQualityBundle\Contract\QualityConfigurationInterface;
 use Portadesign\DataQualityBundle\Contract\RuleCheckerInterface;
 use Portadesign\DataQualityBundle\Dto\QualityCheck;
@@ -22,6 +24,8 @@ final class QualityEvaluationService
         #[TaggedIterator('quality.rule_checker')]
         private readonly iterable $ruleCheckers,
         private readonly QualityConfigurationResolver $resolver,
+        private readonly ClassificationStoreKeyResolverInterface $classificationStoreKeyResolver,
+        private readonly int $classificationStoreId,
     ) {
     }
 
@@ -48,6 +52,7 @@ final class QualityEvaluationService
         $checks = [];
         $mandatorySatisfiedWeight = 0.0;
         $mandatoryTotalWeight = 0.0;
+        $classificationStoreKeyTitles = $this->loadClassificationStoreKeyTitles();
 
         foreach ($rules as $rule) {
             $checker = $this->findChecker($rule, $object);
@@ -55,16 +60,18 @@ final class QualityEvaluationService
 
             $level = (string) $rule->getRequirementLevel();
             $weight = (float) $rule->getWeight();
+            $ruleName = (string) $rule->getDescription();
 
             $checks[] = new QualityCheck(
                 // getId() already returns ?string (a synthetic "objectId:index" composite for
                 // field-collection-backed rules) — cast only guards against the null case.
                 ruleId: (string) $rule->getId(),
-                ruleName: (string) $rule->getDescription(),
+                ruleName: $ruleName,
                 satisfied: $satisfied,
                 level: $level,
                 weight: $weight,
                 targetKey: $rule->getTargetKey(),
+                label: $this->resolveLabel($rule->getTargetKey(), $ruleName, $object->getClassName(), $classificationStoreKeyTitles),
             );
 
             if ($level === 'mandatory') {
@@ -92,6 +99,49 @@ final class QualityEvaluationService
             categoryId: $this->findScopeId($scopeObjects, 'Category'),
             checks: $checks,
         );
+    }
+
+    /**
+     * Resolves a check's targetKey to the human-readable title the user actually sees in the
+     * editor - the class field's title, or the Classification Store key's title - falling back to
+     * the rule's description (unscoped rules) or the raw key (e.g. "WEB02") when no title is
+     * configured.
+     *
+     * @param array<string, string> $classificationStoreKeyTitles
+     */
+    private function resolveLabel(?string $targetKey, string $ruleName, ?string $className, array $classificationStoreKeyTitles): string
+    {
+        if ($targetKey === null || $targetKey === '') {
+            return $ruleName;
+        }
+
+        $fieldDefinition = $className !== null && $className !== ''
+            ? ClassDefinition::getByName($className)?->getFieldDefinition($targetKey)
+            : null;
+
+        if ($fieldDefinition !== null) {
+            return $fieldDefinition->getTitle() ?: $targetKey;
+        }
+
+        if (isset($classificationStoreKeyTitles[$targetKey]) && $classificationStoreKeyTitles[$targetKey] !== '') {
+            return $classificationStoreKeyTitles[$targetKey];
+        }
+
+        return $targetKey;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function loadClassificationStoreKeyTitles(): array
+    {
+        $titles = [];
+
+        foreach ($this->classificationStoreKeyResolver->listActiveKeys($this->classificationStoreId) as $key) {
+            $titles[$key['code']] = $key['title'] ?? '';
+        }
+
+        return $titles;
     }
 
     private function findChecker(QualityConfigurationInterface $rule, Concrete $object): RuleCheckerInterface

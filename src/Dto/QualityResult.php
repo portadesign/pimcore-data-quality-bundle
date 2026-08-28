@@ -19,7 +19,7 @@ final class QualityResult
     }
 
     /**
-     * @return array{score: float, mandatoryComplete: bool, channelId: ?int, categoryId: ?int, checks: list<array{ruleId: string, ruleName: string, satisfied: bool, level: string, weight: float, message: ?string}>}
+     * @return array{score: float, mandatoryComplete: bool, channelId: ?int, categoryId: ?int, checks: list<array{ruleId: string, ruleName: string, satisfied: bool, level: string, weight: float, targetKey: ?string, label: string}>}
      */
     public function toArray(): array
     {

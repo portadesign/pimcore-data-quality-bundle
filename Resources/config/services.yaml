@@ -41,6 +41,10 @@ services:
     Portadesign\DataQualityBundle\Service\:
         resource: '../../src/Service/*'
 
+    Portadesign\DataQualityBundle\Service\QualityEvaluationService:
+        arguments:
+            $classificationStoreId: '%portadesign_data_quality.classification_store_id%'
+
     Portadesign\DataQualityBundle\Repository\:
         resource: '../../src/Repository/*'
 

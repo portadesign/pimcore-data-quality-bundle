@@ -7,6 +7,7 @@ namespace Portadesign\DataQualityBundle\Tests\EventListener;
 use Pimcore\Event\Model\DataObjectEvent;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Portadesign\DataQualityBundle\Contract\ClassificationStoreKeyResolverInterface;
 use Portadesign\DataQualityBundle\Contract\QualityScoreStateRepositoryInterface;
 use Portadesign\DataQualityBundle\Event\QualityThresholdCrossedEvent;
 use Portadesign\DataQualityBundle\EventListener\ProductQualityPostUpdateListener;
@@ -76,7 +77,10 @@ final class ProductQualityPostUpdateListenerTest extends TestCase
         $resolver->method('loadActiveRules')->willReturn([$rule]);
         $resolver->method('filter')->willReturn([$rule]);
 
-        $evaluationService = new QualityEvaluationService([$checker], $resolver);
+        $keyResolver = $this->createStub(ClassificationStoreKeyResolverInterface::class);
+        $keyResolver->method('listActiveKeys')->willReturn([]);
+
+        $evaluationService = new QualityEvaluationService([$checker], $resolver, $keyResolver, 1);
 
         $stateRepository = $this->createMock(QualityScoreStateRepositoryInterface::class);
         $stateRepository->expects(self::once())
@@ -133,7 +137,10 @@ final class ProductQualityPostUpdateListenerTest extends TestCase
         $resolver = $this->createMock(QualityConfigurationResolver::class);
         $resolver->expects(self::never())->method('loadActiveRules');
 
-        $evaluationService = new QualityEvaluationService([], $resolver);
+        $keyResolver = $this->createStub(ClassificationStoreKeyResolverInterface::class);
+        $keyResolver->method('listActiveKeys')->willReturn([]);
+
+        $evaluationService = new QualityEvaluationService([], $resolver, $keyResolver, 1);
 
         $stateRepository = $this->createMock(QualityScoreStateRepositoryInterface::class);
         $stateRepository->expects(self::never())->method('getPreviousState');
@@ -165,7 +172,10 @@ final class ProductQualityPostUpdateListenerTest extends TestCase
         $resolver = $this->createMock(QualityConfigurationResolver::class);
         $resolver->expects(self::never())->method('loadActiveRules');
 
-        $evaluationService = new QualityEvaluationService([], $resolver);
+        $keyResolver = $this->createStub(ClassificationStoreKeyResolverInterface::class);
+        $keyResolver->method('listActiveKeys')->willReturn([]);
+
+        $evaluationService = new QualityEvaluationService([], $resolver, $keyResolver, 1);
 
         $stateRepository = $this->createMock(QualityScoreStateRepositoryInterface::class);
         $stateRepository->expects(self::never())->method('getPreviousState');

@@ -5,6 +5,7 @@ export interface QualityCheck {
   level: string
   weight: number
   targetKey: string | null
+  label: string
 }
 
 export interface QualityResultDto {
