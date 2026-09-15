@@ -1,0 +1,8 @@
+parameters:
+    level: max
+    paths:
+        - src
+    scanDirectories:
+        - /var/www/html/var/classes/DataObject
+        - /var/www/html/vendor/pimcore/studio-ui-bundle/src
+    reportUnmatchedIgnoredErrors: false
