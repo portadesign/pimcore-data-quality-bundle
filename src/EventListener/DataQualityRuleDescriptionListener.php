@@ -9,6 +9,7 @@ use Pimcore\Event\Model\DataObjectEvent;
 use Pimcore\Model\DataObject\ClassDefinition;
 use Pimcore\Model\DataObject\Concrete;
 use Pimcore\Model\DataObject\DataQualityConfiguration;
+use Pimcore\Model\Element\AbstractElement;
 use Portadesign\DataQualityBundle\Contract\ClassificationStoreKeyResolverInterface;
 use Portadesign\DataQualityBundle\Contract\QualityConfigurationInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -51,12 +52,13 @@ final class DataQualityRuleDescriptionListener implements EventSubscriberInterfa
         // Fetched once per save, not once per rule - listActiveKeys() is a real DB query.
         $csKeyTitlesByCode = [];
         foreach ($this->keyResolver->listActiveKeys($this->classificationStoreId) as $key) {
-            $csKeyTitlesByCode[$key['code']] = $key['title'];
+            $csKeyTitlesByCode[$key['code']] = $key['title'] ?? '';
         }
 
         $targetClass = $subject->getTargetClass();
 
         foreach ($rules->getItems() as $rule) {
+            /** @phpstan-ignore instanceof.alwaysTrue, function.alreadyNarrowedType */
             if (! $rule instanceof QualityConfigurationInterface || ! \method_exists($rule, 'setDescription')) {
                 continue;
             }
@@ -81,19 +83,32 @@ final class DataQualityRuleDescriptionListener implements EventSubscriberInterfa
     }
 
     /**
-     * @param list<Concrete> $dependentObjects
+     * @param list<AbstractElement> $dependentObjects
      */
     private function resolveScopeLabel(array $dependentObjects): string
     {
-        $first = $dependentObjects[0] ?? null;
+        $labels = [];
 
-        if (! $first instanceof Concrete) {
-            return 'Global';
+        foreach ($dependentObjects as $dependentObject) {
+            if (! $dependentObject instanceof Concrete) {
+                continue;
+            }
+
+            $labels[] = $this->resolveDependentObjectLabel($dependentObject);
         }
 
-        $name = \method_exists($first, 'getName') ? $first->getName() : null;
+        return $labels === [] ? 'Global' : \implode(' + ', $labels);
+    }
 
-        return \sprintf('%s: %s', $first->getClassName(), \is_string($name) && $name !== '' ? $name : $first->getKey());
+    private function resolveDependentObjectLabel(Concrete $dependentObject): string
+    {
+        $name = \method_exists($dependentObject, 'getName') ? $dependentObject->getName() : null;
+
+        return \sprintf(
+            '%s: %s',
+            $dependentObject->getClassName(),
+            \is_string($name) && $name !== '' ? $name : $dependentObject->getKey(),
+        );
     }
 
     /**

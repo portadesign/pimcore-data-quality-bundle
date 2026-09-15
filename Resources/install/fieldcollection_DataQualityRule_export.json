@@ -56,7 +56,7 @@
           {
             "name": "dependentObjects",
             "title": "Dependent Objects",
-            "tooltip": "Scope this rule to one or more DataObjects of any class (e.g. specific Channels and/or Categories). Leave empty to apply the rule unconditionally.",
+            "tooltip": "Scope this rule to one or more DataObjects of any class (e.g. specific Channels and/or Categories). The rule applies only when the product is linked to ALL of the listed objects, not any one of them. Leave empty to apply the rule unconditionally.",
             "mandatory": false,
             "noteditable": false,
             "index": false,
