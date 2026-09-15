@@ -41,9 +41,9 @@ final class QualityReportControllerTest extends TestCase
         // One global (unscoped) rule feeds "overall"; one channel-scoped and one category-scoped
         // rule feed their respective per-axis entries. All satisfied, so every score is 100.
         $rules = [
-            new FakeQualityRule(id: 1, requirementLevel: 'mandatory', weight: 1.0),
-            new FakeQualityRule(id: 2, dependentObjects: [$channel], requirementLevel: 'mandatory', weight: 1.0),
-            new FakeQualityRule(id: 3, dependentObjects: [$category], requirementLevel: 'mandatory', weight: 1.0),
+            new FakeQualityRule(id: 1, targetKey: null, requirementLevel: 'mandatory', weight: 1.0),
+            new FakeQualityRule(id: 2, dependentObjects: [$channel], targetKey: null, requirementLevel: 'mandatory', weight: 1.0),
+            new FakeQualityRule(id: 3, dependentObjects: [$category], targetKey: null, requirementLevel: 'mandatory', weight: 1.0),
         ];
 
         $controller = $this->makeController($rules, [$channel, $category]);
@@ -126,7 +126,7 @@ final class QualityReportControllerTest extends TestCase
             }
         );
 
-        $checker = new FakeRuleChecker('coreField', array_fill_keys(
+        $checker = new FakeRuleChecker(static fn (): bool => true, array_fill_keys(
             array_map(static fn (FakeQualityRule $rule): string => (string) $rule->getId(), $rules),
             true
         ));

@@ -70,7 +70,7 @@ final class ProductQualityPostUpdateListenerTest extends TestCase
     {
         $expectedScore = $satisfied ? 100.0 : 0.0;
 
-        $rule = new FakeQualityRule(id: 1);
+        $rule = new FakeQualityRule(id: 1, targetKey: null);
         $checker = new FakeRuleChecker(static fn (): bool => true, ['1' => $satisfied]);
 
         $resolver = $this->createStub(QualityConfigurationResolver::class);
