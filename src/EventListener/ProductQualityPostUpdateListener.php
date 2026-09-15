@@ -44,7 +44,7 @@ final class ProductQualityPostUpdateListener implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
-            DataObjectEvents::POST_UPDATE => 'onPostUpdate',
+            DataObjectEvents::POST_UPDATE => ['onPostUpdate', 10],
         ];
     }
 
@@ -58,91 +58,70 @@ final class ProductQualityPostUpdateListener implements EventSubscriberInterface
             return;
         }
 
-        $subject = $event->getObject();
+        $product = $event->getObject();
 
-        if (! $subject instanceof Product) {
+        if (! $product instanceof Product) {
             return;
         }
 
         self::$inProgress = true;
 
         try {
-            // Loaded once and reused across every channel/category axis below, instead of each
-            // evaluate() call re-querying+re-filtering the full active-rule listing.
-            // Hardcoded to 'Product' rather than derived from $subject::class: this listener only
-            // ever fires for Product (guarded above), and Pimcore's generated Product class's
-            // short name IS "Product" already, so deriving it would add indirection without
-            // changing the result — see class-level docblock.
+            // Hardcoded to 'Product', not derived from $product::class — this listener only fires
+            // for Product (guarded above).
             $activeRules = $this->resolver->loadActiveRules('Product');
 
-            $this->evaluateChannels($subject, $activeRules);
-            $this->evaluateCategories($subject, $activeRules);
+            $channels = $this->getRelations($product, $this->channelRelationFieldName);
+            $categories = $this->getRelations($product, $this->categoryRelationFieldName);
+            $allScopeObjects = [...$channels, ...$categories];
+
+            foreach ($channels as $channel) {
+                $this->evaluateScope($product, $channel, $allScopeObjects, 'channel', $activeRules);
+            }
+
+            foreach ($categories as $category) {
+                $this->evaluateScope($product, $category, $allScopeObjects, 'category', $activeRules);
+            }
         } finally {
             self::$inProgress = false;
         }
     }
 
     /**
-     * @param list<QualityConfigurationInterface> $activeRules
+     * @return list<Concrete>
      */
-    private function evaluateChannels(Product $product, array $activeRules): void
+    private function getRelations(Product $product, string $fieldName): array
     {
-        $getter = 'get' . \ucfirst($this->channelRelationFieldName);
+        $getter = 'get' . \ucfirst($fieldName);
 
         if (! \method_exists($product, $getter)) {
-            $this->logger->error('ProductQualityPostUpdateListener: Product has no {getter}() method for channel relation field "{field}".', [
+            $this->logger->error('ProductQualityPostUpdateListener: Product has no {getter}() method for relation field "{field}".', [
                 'getter' => $getter,
-                'field' => $this->channelRelationFieldName,
+                'field' => $fieldName,
             ]);
 
-            return;
+            return [];
         }
 
-        $channels = $product->{$getter}();
+        $relations = [];
 
-        foreach ((array) $channels as $channel) {
-            if (! $channel instanceof Concrete) {
-                continue;
+        foreach ((array) $product->{$getter}() as $relation) {
+            if ($relation instanceof Concrete) {
+                $relations[] = $relation;
             }
-
-            $this->evaluateScope($product, $channel, 'channel', $activeRules);
         }
+
+        return $relations;
     }
 
     /**
+     * @param list<Concrete>                      $allScopeObjects
      * @param list<QualityConfigurationInterface> $activeRules
      */
-    private function evaluateCategories(Product $product, array $activeRules): void
-    {
-        $getter = 'get' . \ucfirst($this->categoryRelationFieldName);
-
-        if (! \method_exists($product, $getter)) {
-            $this->logger->error('ProductQualityPostUpdateListener: Product has no {getter}() method for category relation field "{field}".', [
-                'getter' => $getter,
-                'field' => $this->categoryRelationFieldName,
-            ]);
-
-            return;
-        }
-
-        $categories = $product->{$getter}();
-
-        foreach ((array) $categories as $category) {
-            if (! $category instanceof Concrete) {
-                continue;
-            }
-
-            $this->evaluateScope($product, $category, 'category', $activeRules);
-        }
-    }
-
-    /**
-     * @param list<QualityConfigurationInterface> $activeRules
-     */
-    private function evaluateScope(Product $product, Concrete $scopeObject, string $scopeType, array $activeRules): void
+    private function evaluateScope(Product $product, Concrete $scopeObject, array $allScopeObjects, string $scopeType, array $activeRules): void
     {
         try {
-            $result = $this->evaluationService->evaluate($product, [$scopeObject], $activeRules);
+            $result = $this->evaluationService->evaluateForScope($product, $allScopeObjects, $scopeObject, $activeRules);
             $mandatoryComplete = $result->mandatoryComplete;
 
             $previous = $this->stateRepository->getPreviousState((int) $product->getId(), $scopeType, (int) $scopeObject->getId());

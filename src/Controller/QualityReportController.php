@@ -58,67 +58,60 @@ class QualityReportController extends AbstractController
      * assembly) is unit-testable without a booted Pimcore kernel/DB — only the thin
      * Concrete::getById() lookup above needs one.
      *
-     * @return array{overall: array, byChannel: list<array>, byCategory: list<array>}
+     * @return array{overall: array<string, mixed>, byChannel: list<array<string, mixed>>, byCategory: list<array<string, mixed>>}
      */
     public function buildReport(Product $object): array
     {
-        // Loaded once and reused across every axis below, instead of each evaluate() call
-        // re-querying+re-filtering the full active-rule listing. Hardcoded to 'Product' — this
-        // controller/report is Product-specific throughout (see class docblock).
         $activeRules = $this->resolver->loadActiveRules('Product');
 
-        $overall = $this->evaluateSafely($object, [], $activeRules, 'overall');
+        $channels = $this->getRelations($object, $this->channelRelationFieldName);
+        $categories = $this->getRelations($object, $this->categoryRelationFieldName);
+        $allScopeObjects = [...$channels, ...$categories];
+
+        $overall = $this->evaluateSafely($object, $allScopeObjects, null, $activeRules, 'overall');
 
         $byChannel = [];
 
-        foreach ($this->getRelations($object, $this->channelRelationFieldName) as $channel) {
-            $result = $this->evaluateSafely($object, [$channel], $activeRules, 'channel');
+        foreach ($channels as $channel) {
+            $result = $this->evaluateSafely($object, $allScopeObjects, $channel, $activeRules, 'channel');
 
             $byChannel[] = [
+                ...$result->toArray(),
                 'channelId' => $channel->getId(),
                 'channelName' => $this->getRelationName($channel),
-                ...$result->toArray(),
             ];
         }
 
         $byCategory = [];
 
-        foreach ($this->getRelations($object, $this->categoryRelationFieldName) as $category) {
-            $result = $this->evaluateSafely($object, [$category], $activeRules, 'category');
+        foreach ($categories as $category) {
+            $result = $this->evaluateSafely($object, $allScopeObjects, $category, $activeRules, 'category');
 
             $byCategory[] = [
+                ...$result->toArray(),
                 'categoryId' => $category->getId(),
                 'categoryName' => $this->getRelationName($category),
-                ...$result->toArray(),
             ];
         }
 
         return [
-            'overall' => $overall->toArray(),
+            'overall' => [...$overall->toArray(), 'channelId' => null, 'categoryId' => null],
             'byChannel' => $byChannel,
             'byCategory' => $byCategory,
         ];
     }
 
     /**
-     * Same defensive handling as ProductQualityPostUpdateListener::evaluateScope(): a single
-     * misconfigured rule (e.g. a typo'd targetKey) must not take down the whole report for every
-     * product. Catches \Throwable, logs it, and returns a result indicating this axis could not
-     * be evaluated instead of letting the exception propagate.
+     * A single misconfigured rule must not take down the whole report; logs and degrades to a 0%
+     * result instead of propagating.
      *
-     * Deliberate tradeoff, not yet hardened: this also swallows infrastructure failures (e.g. a
-     * transient DB error inside a rule checker) as a degraded "0% quality" result rather than
-     * letting them bubble as a hard error. Acceptable for this demo bundle's risk profile today;
-     * revisit (e.g. let \Doctrine\DBAL\Exception/\PDOException propagate instead) before this
-     * feeds anything where a silent false "incomplete" signal would have real consequences.
-     *
-     * @param list<Concrete>                      $scopeObjects
+     * @param list<Concrete>                      $allScopeObjects
      * @param list<QualityConfigurationInterface> $activeRules
      */
-    private function evaluateSafely(Product $object, array $scopeObjects, array $activeRules, string $scopeType): QualityResult
+    private function evaluateSafely(Product $object, array $allScopeObjects, ?Concrete $scopeObject, array $activeRules, string $scopeType): QualityResult
     {
         try {
-            return $this->evaluationService->evaluate($object, $scopeObjects, $activeRules);
+            return $this->evaluationService->evaluateForScope($object, $allScopeObjects, $scopeObject, $activeRules);
         } catch (\Throwable $exception) {
             $this->logger->error('QualityReportController: failed evaluating {scopeType} scope for product {productId}: {message}', [
                 'scopeType' => $scopeType,
@@ -130,25 +123,9 @@ class QualityReportController extends AbstractController
             return new QualityResult(
                 score: 0.0,
                 mandatoryComplete: false,
-                channelId: $this->findScopeId($scopeObjects, 'Channel'),
-                categoryId: $this->findScopeId($scopeObjects, 'Category'),
                 checks: [],
             );
         }
-    }
-
-    /**
-     * @param list<Concrete> $scopeObjects
-     */
-    private function findScopeId(array $scopeObjects, string $className): ?int
-    {
-        foreach ($scopeObjects as $scopeObject) {
-            if ($scopeObject->getClassName() === $className) {
-                return $scopeObject->getId();
-            }
-        }
-
-        return null;
     }
 
     /**

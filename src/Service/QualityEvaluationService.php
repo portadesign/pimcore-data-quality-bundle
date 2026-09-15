@@ -30,18 +30,10 @@ final class QualityEvaluationService
     }
 
     /**
-     * @param list<Concrete>                            $scopeObjects Objects the evaluated rule set is
-     *                                                                  matched against — a rule with a
-     *                                                                  non-empty `dependentObjects` list
-     *                                                                  applies only if at least one of
-     *                                                                  its dependent objects appears
-     *                                                                  here. Pass an empty list to
-     *                                                                  evaluate only unscoped rules.
-     * @param list<QualityConfigurationInterface>|null  $activeRules  Pre-fetched result of
-     *                                                                  QualityConfigurationResolver::loadActiveRules(), to avoid
-     *                                                                  re-querying when evaluating multiple scopes for
-     *                                                                  the same save. Pass null to have this call resolve/query rules
-     *                                                                  itself (single-scope convenience).
+     * Single-scope convenience; no production caller — see evaluateForScope().
+     *
+     * @param list<Concrete>                           $scopeObjects Rules with a non-empty `dependentObjects` apply only if all of them are in this list.
+     * @param list<QualityConfigurationInterface>|null $activeRules  Pre-fetched via QualityConfigurationResolver::loadActiveRules(); null resolves/queries internally.
      */
     public function evaluate(Concrete $object, array $scopeObjects = [], ?array $activeRules = null): QualityResult
     {
@@ -49,6 +41,78 @@ final class QualityEvaluationService
             ? $this->resolver->filter($activeRules, $scopeObjects)
             : $this->resolver->resolve($scopeObjects);
 
+        return $this->buildResult($object, $rules);
+    }
+
+    /**
+     * Shared entry point for ProductQualityPostUpdateListener and QualityReportController: filters
+     * $activeRules to what's applicable across $allScopeObjects, then narrows to what counts
+     * toward $scopeObject specifically (see filterForScope()). $scopeObject = null evaluates the
+     * unscoped "overall" score.
+     *
+     * @param list<Concrete>                      $allScopeObjects Every scope axis object $object is linked to.
+     * @param list<QualityConfigurationInterface> $activeRules     Pre-fetched via QualityConfigurationResolver::loadActiveRules().
+     */
+    public function evaluateForScope(Concrete $object, array $allScopeObjects, ?Concrete $scopeObject, array $activeRules): QualityResult
+    {
+        $applicableRules = $this->resolver->filter($activeRules, $allScopeObjects);
+        $rules = $this->filterForScope($applicableRules, $scopeObject);
+
+        return $this->buildResult($object, $rules);
+    }
+
+    /**
+     * A rule counts toward $scopeObject when it's among its dependentObjects, or when the rule has
+     * no dependent object of $scopeObject's class at all. $scopeObject = null keeps only rules
+     * with no dependent objects.
+     *
+     * @param list<QualityConfigurationInterface> $rules
+     *
+     * @return list<QualityConfigurationInterface>
+     */
+    private function filterForScope(array $rules, ?Concrete $scopeObject): array
+    {
+        $filtered = [];
+
+        foreach ($rules as $rule) {
+            $dependentObjects = $rule->getDependentObjects();
+
+            if ($scopeObject === null) {
+                if ($dependentObjects === []) {
+                    $filtered[] = $rule;
+                }
+
+                continue;
+            }
+
+            $matchesScope = false;
+            $hasSameClassDependent = false;
+
+            foreach ($dependentObjects as $dependentObject) {
+                if (! $dependentObject instanceof Concrete || $dependentObject->getClassName() !== $scopeObject->getClassName()) {
+                    continue;
+                }
+
+                $hasSameClassDependent = true;
+
+                if ($dependentObject->getId() === $scopeObject->getId()) {
+                    $matchesScope = true;
+                }
+            }
+
+            if ($matchesScope || ! $hasSameClassDependent) {
+                $filtered[] = $rule;
+            }
+        }
+
+        return $filtered;
+    }
+
+    /**
+     * @param list<QualityConfigurationInterface> $rules
+     */
+    private function buildResult(Concrete $object, array $rules): QualityResult
+    {
         $checks = [];
         $mandatorySatisfiedWeight = 0.0;
         $mandatoryTotalWeight = 0.0;
@@ -95,8 +159,6 @@ final class QualityEvaluationService
         return new QualityResult(
             score: $score,
             mandatoryComplete: $mandatoryComplete,
-            channelId: $this->findScopeId($scopeObjects, 'Channel'),
-            categoryId: $this->findScopeId($scopeObjects, 'Category'),
             checks: $checks,
         );
     }
@@ -160,23 +222,4 @@ final class QualityEvaluationService
         ));
     }
 
-    /**
-     * QualityResult keeps dedicated channelId/categoryId fields for backwards-compatible report
-     * shape even though $scopeObjects is now class-agnostic — derived here by matching the first
-     * scope object of the given class name, since in practice a Product's own scope objects are
-     * still exactly Channel/Category instances (see ProductQualityPostUpdateListener /
-     * QualityReportController, both of which still gather scope per Channel/Category relation).
-     *
-     * @param list<Concrete> $scopeObjects
-     */
-    private function findScopeId(array $scopeObjects, string $className): ?int
-    {
-        foreach ($scopeObjects as $scopeObject) {
-            if ($scopeObject->getClassName() === $className) {
-                return $scopeObject->getId();
-            }
-        }
-
-        return null;
-    }
 }

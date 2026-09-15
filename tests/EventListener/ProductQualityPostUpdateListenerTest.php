@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Portadesign\DataQualityBundle\Tests\EventListener;
 
+use Pimcore\Event\DataObjectEvents;
 use Pimcore\Event\Model\DataObjectEvent;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -165,6 +166,14 @@ final class ProductQualityPostUpdateListenerTest extends TestCase
         $product->setId(self::PRODUCT_ID);
 
         $listener->onPostUpdate(new DataObjectEvent($product, ['isAutoSave' => true]));
+    }
+
+    public function testSubscribesToPostUpdateAtPriorityTenSoItRunsBeforeGenericDataIndex(): void
+    {
+        self::assertSame(
+            [DataObjectEvents::POST_UPDATE => ['onPostUpdate', 10]],
+            ProductQualityPostUpdateListener::getSubscribedEvents(),
+        );
     }
 
     public function testNonProductObjectIsIgnored(): void
