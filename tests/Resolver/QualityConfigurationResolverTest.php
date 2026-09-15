@@ -25,7 +25,21 @@ final class QualityConfigurationResolverTest extends TestCase
         self::assertSame([], $resolver->filter([$rule], []));
     }
 
-    public function testRuleAppliesWhenAnyOfMultipleDependentObjectsIsInScope(): void
+    public function testRuleWithMultipleDependentObjectsRequiresAllOfThemInScope(): void
+    {
+        $channel = $this->makeElement(10);
+        $category = $this->makeElement(30);
+
+        $rule = new FakeQualityRule(id: 1, dependentObjects: [$channel, $category]);
+
+        $resolver = new QualityConfigurationResolver();
+
+        self::assertSame([], $resolver->filter([$rule], [$channel]));
+        self::assertSame([], $resolver->filter([$rule], [$category]));
+        self::assertSame([$rule], $resolver->filter([$rule], [$channel, $category]));
+    }
+
+    public function testRuleAppliesWhenScopeIsSupersetOfDependentObjects(): void
     {
         $channel = $this->makeElement(10);
         $category = $this->makeElement(30);
@@ -35,9 +49,21 @@ final class QualityConfigurationResolverTest extends TestCase
 
         $resolver = new QualityConfigurationResolver();
 
-        self::assertSame([$rule], $resolver->filter([$rule], [$channel]));
-        self::assertSame([$rule], $resolver->filter([$rule], [$category]));
-        self::assertSame([], $resolver->filter([$rule], [$otherCategory]));
+        self::assertSame([$rule], $resolver->filter([$rule], [$channel, $category, $otherCategory]));
+    }
+
+    public function testRuleWithTwoDependentObjectsOfSameKindRequiresBothInScope(): void
+    {
+        $channelA = $this->makeElement(10);
+        $channelB = $this->makeElement(20);
+
+        $rule = new FakeQualityRule(id: 1, dependentObjects: [$channelA, $channelB]);
+
+        $resolver = new QualityConfigurationResolver();
+
+        self::assertSame([], $resolver->filter([$rule], [$channelA]));
+        self::assertSame([], $resolver->filter([$rule], [$channelB]));
+        self::assertSame([$rule], $resolver->filter([$rule], [$channelA, $channelB]));
     }
 
     public function testGlobalRuleWithNoDependentObjectsIsAlwaysIncluded(): void

@@ -51,10 +51,10 @@ class QualityConfigurationResolver
 
     /**
      * Filters an already-loaded rule set down to the rules applicable to the given scope: a rule
-     * applies when its own `dependentObjects` list is empty (unscoped, always applies), or when at
-     * least one of its dependent object ids is present among $scopeObjects' ids. $scopeObjects is
-     * generic — any mix of DataObject classes, not limited to a fixed "channel"/"category" axis
-     * pair.
+     * applies when its own `dependentObjects` list is empty (unscoped, always applies), or when
+     * every one of its dependent object ids is present among $scopeObjects' ids (subset test).
+     * $scopeObjects is generic — any mix of DataObject classes, not limited to a fixed
+     * "channel"/"category" axis pair.
      *
      * The active check is re-applied here (in addition to the SQL condition in loadActiveRules())
      * as defense-in-depth for callers that assemble $rules some other way, and it's what keeps this
@@ -90,7 +90,7 @@ class QualityConfigurationResolver
                     $dependentObjects,
                 );
 
-                if (\array_intersect($dependentIds, $scopeIds) === []) {
+                if (\array_diff($dependentIds, $scopeIds) !== []) {
                     continue;
                 }
             }
