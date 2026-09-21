@@ -9,7 +9,7 @@ import { useGlobalElementContext } from '@pimcore/studio-ui-bundle/modules/eleme
 export const useCurrentObjectId = (): number | null => {
   const { context } = useGlobalElementContext()
 
-  if (context === undefined) {
+  if (context === undefined || context === null) {
     return null
   }
 
