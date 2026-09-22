@@ -23,6 +23,16 @@ user-management:
 'Relative weight of this rule within the mandatory-rule score calculation.': 'Relativní váha tohoto pravidla ve výpočtu skóre z povinných pravidel.'
 'Active': 'Aktivní'
 'Inactive rules are ignored during evaluation.': 'Neaktivní pravidla se při vyhodnocení ignorují.'
+'Workflow Gates': 'Brány workflow'
+'Gates': 'Brány'
+'Workflow transitions blocked until the product passes the required quality level. Evaluates unscoped rules and rules of the product''s categories; channel rules never gate.': 'Přechody workflow blokované, dokud produkt nesplní požadovanou úroveň kvality. Vyhodnocují se pravidla bez scope a pravidla kategorií produktu; pravidla kanálů bránu nikdy neblokují.'
+'Data Quality Gate': 'Brána kvality dat'
+'Transition': 'Přechod'
+'Workflow transition this gate blocks until the product passes the required quality level.': 'Přechod workflow, který brána blokuje, dokud produkt nesplní požadovanou úroveň kvality.'
+'Required Level': 'Požadovaná úroveň'
+'Which unsatisfied rules block the transition: mandatory only, or mandatory and recommended.': 'Která nesplněná pravidla přechod blokují: jen povinná, nebo povinná a doporučená.'
+'Mandatory + Recommended': 'Povinné + doporučené'
+'Inactive gates never block.': 'Neaktivní brány nikdy neblokují.'
 portadesign_data_quality:
     report:
         overall: 'Celkově'

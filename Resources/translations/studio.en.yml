@@ -23,6 +23,16 @@ user-management:
 'Relative weight of this rule within the mandatory-rule score calculation.': 'Relative weight of this rule within the mandatory-rule score calculation.'
 'Active': 'Active'
 'Inactive rules are ignored during evaluation.': 'Inactive rules are ignored during evaluation.'
+'Workflow Gates': 'Workflow Gates'
+'Gates': 'Gates'
+'Workflow transitions blocked until the product passes the required quality level. Evaluates unscoped rules and rules of the product''s categories; channel rules never gate.': 'Workflow transitions blocked until the product passes the required quality level. Evaluates unscoped rules and rules of the product''s categories; channel rules never gate.'
+'Data Quality Gate': 'Data Quality Gate'
+'Transition': 'Transition'
+'Workflow transition this gate blocks until the product passes the required quality level.': 'Workflow transition this gate blocks until the product passes the required quality level.'
+'Required Level': 'Required Level'
+'Which unsatisfied rules block the transition: mandatory only, or mandatory and recommended.': 'Which unsatisfied rules block the transition: mandatory only, or mandatory and recommended.'
+'Mandatory + Recommended': 'Mandatory + Recommended'
+'Inactive gates never block.': 'Inactive gates never block.'
 portadesign_data_quality:
     report:
         overall: 'Overall'

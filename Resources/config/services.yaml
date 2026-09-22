@@ -31,6 +31,9 @@ services:
     Portadesign\DataQualityBundle\Contract\ValidLanguageProviderInterface:
         class: Portadesign\DataQualityBundle\Support\PimcoreValidLanguageProvider
 
+    Portadesign\DataQualityBundle\Contract\WorkflowTransitionCatalogInterface:
+        class: Portadesign\DataQualityBundle\Support\PimcoreWorkflowTransitionCatalog
+
     Portadesign\DataQualityBundle\RuleChecker\:
         resource: '../../src/RuleChecker/*'
 

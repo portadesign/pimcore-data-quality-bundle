@@ -16,7 +16,9 @@ class Installer extends AbstractInstaller
 {
     private const CLASS_ID = 'data_quality_configuration';
     private const CLASS_NAME = 'DataQualityConfiguration';
-    private const FIELD_COLLECTION_KEY = 'DataQualityRule';
+    private const RULE_FIELD_COLLECTION_KEY = 'DataQualityRule';
+    private const GATE_FIELD_COLLECTION_KEY = 'DataQualityGate';
+    private const FIELD_COLLECTION_KEYS = [self::RULE_FIELD_COLLECTION_KEY, self::GATE_FIELD_COLLECTION_KEY];
     public const SCORES_TABLE = 'portadesign_data_quality_scores';
     public const PERMISSION_KEY = 'portadesign_data_quality_report';
     private const PERMISSION_CATEGORY = 'Data Quality';
@@ -26,7 +28,10 @@ class Installer extends AbstractInstaller
         // Field collection must exist before the class is (re-)imported: the class' `rules`
         // field references it via allowedTypes, and on an upgrade the class layout is replaced
         // wholesale (see installClassFromJson()'s docblock).
-        $this->installFieldCollectionFromJson();
+        foreach (self::FIELD_COLLECTION_KEYS as $fieldCollectionKey) {
+            $this->installFieldCollectionFromJson($fieldCollectionKey);
+        }
+
         $this->installClassFromJson();
         $this->installScoresTable();
         $this->installPermission();
@@ -46,10 +51,8 @@ class Installer extends AbstractInstaller
             $definition->delete();
         }
 
-        $fieldCollection = Fieldcollection\Definition::getByKey(self::FIELD_COLLECTION_KEY);
-
-        if ($fieldCollection !== null) {
-            $fieldCollection->delete();
+        foreach (self::FIELD_COLLECTION_KEYS as $fieldCollectionKey) {
+            Fieldcollection\Definition::getByKey($fieldCollectionKey)?->delete();
         }
 
         Db::get()->executeStatement('DROP TABLE IF EXISTS `' . self::SCORES_TABLE . '`');
@@ -68,7 +71,7 @@ class Installer extends AbstractInstaller
     public function isInstalled(): bool
     {
         return ClassDefinition::getById(self::CLASS_ID) !== null
-            && Fieldcollection\Definition::getByKey(self::FIELD_COLLECTION_KEY) !== null
+            && $this->allFieldCollectionsExist()
             && $this->scoresTableExists()
             && PermissionDefinition::getByKey(self::PERMISSION_KEY) !== null;
     }
@@ -81,7 +84,8 @@ class Installer extends AbstractInstaller
     public function canBeUninstalled(): bool
     {
         return ClassDefinition::getById(self::CLASS_ID) !== null
-            || Fieldcollection\Definition::getByKey(self::FIELD_COLLECTION_KEY) !== null
+            || Fieldcollection\Definition::getByKey(self::RULE_FIELD_COLLECTION_KEY) !== null
+            || Fieldcollection\Definition::getByKey(self::GATE_FIELD_COLLECTION_KEY) !== null
             || $this->scoresTableExists()
             || PermissionDefinition::getByKey(self::PERMISSION_KEY) !== null;
     }
@@ -163,12 +167,12 @@ class Installer extends AbstractInstaller
         }
     }
 
-    private function getFieldCollectionDefinitionPath(): string
+    private function getFieldCollectionDefinitionPath(string $key): string
     {
         $path = \sprintf(
             '%s/Resources/install/fieldcollection_%s_export.json',
             \dirname(__DIR__),
-            self::FIELD_COLLECTION_KEY
+            $key
         );
 
         $path = \realpath($path);
@@ -176,7 +180,7 @@ class Installer extends AbstractInstaller
         if ($path === false || !\is_file($path)) {
             throw new InstallationException(\sprintf(
                 'Field collection export for "%s" was expected in "%s" but file does not exist',
-                self::FIELD_COLLECTION_KEY,
+                $key,
                 $path
             ));
         }
@@ -185,19 +189,18 @@ class Installer extends AbstractInstaller
     }
 
     /**
-     * Creates the DataQualityRule field collection definition on first install, or upgrades it in
-     * place (same wholesale-layout-replacement behaviour as installClassFromJson()) on every
-     * subsequent install.
+     * Creates the field collection definition on first install, or upgrades it in place (same
+     * wholesale-layout-replacement behaviour as installClassFromJson()) on every subsequent install.
      */
-    private function installFieldCollectionFromJson(): void
+    private function installFieldCollectionFromJson(string $key): void
     {
-        $path = $this->getFieldCollectionDefinitionPath();
+        $path = $this->getFieldCollectionDefinitionPath($key);
 
-        $fieldCollection = Fieldcollection\Definition::getByKey(self::FIELD_COLLECTION_KEY);
+        $fieldCollection = Fieldcollection\Definition::getByKey($key);
 
         if ($fieldCollection === null) {
             $fieldCollection = new Fieldcollection\Definition();
-            $fieldCollection->setKey(self::FIELD_COLLECTION_KEY);
+            $fieldCollection->setKey($key);
         }
 
         $data = \file_get_contents($path);
@@ -214,9 +217,20 @@ class Installer extends AbstractInstaller
         if (!$success) {
             throw new InstallationException(\sprintf(
                 'Failed to create field collection "%s"',
-                self::FIELD_COLLECTION_KEY
+                $key
             ));
         }
+    }
+
+    private function allFieldCollectionsExist(): bool
+    {
+        foreach (self::FIELD_COLLECTION_KEYS as $fieldCollectionKey) {
+            if (Fieldcollection\Definition::getByKey($fieldCollectionKey) === null) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private function installScoresTable(): void
