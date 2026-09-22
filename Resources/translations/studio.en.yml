@@ -47,6 +47,8 @@ portadesign_data_quality:
         no_object: 'No object selected'
         no_report: 'No quality report available'
         no_scopes: 'This product is not assigned to any channel or category'
+    gates:
+        title: 'Workflow gates:'
     workflow:
         blocked_title: 'Unavailable transitions'
         missing: 'Quality: missing {{fields}}.'

@@ -22,15 +22,17 @@
     "globalName": "portadesign_data_quality_bundle",
     "pluginVersion": "0.13.1",
     "prefetchInterface": false,
-    "publicPath": "/bundles/portadesigndataquality/build/7da3e9f9-f9f2-4b7b-bfe6-bcafafc3530b/"
+    "publicPath": "/bundles/portadesigndataquality/build/f6a6db0e-2b20-4fb4-96be-e7ac325fb130/"
   },
   "shared": [
     {
-      "id": "portadesign_data_quality_bundle:antd",
-      "name": "antd",
-      "version": "5.29.3",
       "singleton": true,
       "requiredVersion": "^5.29.3",
+      "shareScope": "default",
+      "name": "antd",
+      "version": "5.29.3",
+      "eager": false,
+      "id": "portadesign_data_quality_bundle:antd",
       "assets": {
         "js": {
           "async": [],
@@ -42,14 +44,19 @@
           "async": [],
           "sync": []
         }
-      }
+      },
+      "usedIn": [
+        "."
+      ]
     },
     {
-      "id": "portadesign_data_quality_bundle:react-dom",
-      "name": "react-dom",
-      "version": "18.3.1",
       "singleton": true,
       "requiredVersion": "^18.3.1",
+      "shareScope": "default",
+      "eager": true,
+      "name": "react-dom",
+      "version": "18.3.1",
+      "id": "portadesign_data_quality_bundle:react-dom",
       "assets": {
         "js": {
           "async": [],
@@ -62,14 +69,17 @@
           "async": [],
           "sync": []
         }
-      }
+      },
+      "usedIn": []
     },
     {
-      "id": "portadesign_data_quality_bundle:react-i18next",
-      "name": "react-i18next",
-      "version": "14.1.3",
       "singleton": true,
       "requiredVersion": "^14.1.3",
+      "shareScope": "default",
+      "name": "react-i18next",
+      "version": "14.1.3",
+      "eager": false,
+      "id": "portadesign_data_quality_bundle:react-i18next",
       "assets": {
         "js": {
           "async": [],
@@ -81,14 +91,19 @@
           "async": [],
           "sync": []
         }
-      }
+      },
+      "usedIn": [
+        "."
+      ]
     },
     {
-      "id": "portadesign_data_quality_bundle:react",
-      "name": "react",
-      "version": "18.3.1",
       "singleton": true,
       "requiredVersion": "^18.3.1",
+      "shareScope": "default",
+      "eager": true,
+      "name": "react",
+      "version": "18.3.1",
+      "id": "portadesign_data_quality_bundle:react",
       "assets": {
         "js": {
           "async": [],
@@ -101,49 +116,79 @@
           "async": [],
           "sync": []
         }
-      }
+      },
+      "usedIn": [
+        "."
+      ]
     }
   ],
   "remotes": [
     {
+      "alias": "@pimcore/studio-ui-bundle",
+      "consumingFederationContainerName": "portadesign_data_quality_bundle",
       "federationContainerName": "promise new Promise((resolve) => {\n    const emptyContainer = {\n      get: () => Promise.resolve(() => ({})),\n      init: () => {}\n    }\n\n    const remoteUrl = window.StudioUIBundleRemoteUrl\n\n    if (!remoteUrl) {\n      throw new Error('Required remote \"pimcore_studio_ui_bundle\" is not available');\n      return\n    }\n\n    // Check if the container is already available\n    if (window['pimcore_studio_ui_bundle']) {\n      resolve({\n        get: (request) => window['pimcore_studio_ui_bundle'].get(request),\n        init: (...arg) => {\n          try {\n            return window['pimcore_studio_ui_bundle'].init(...arg)\n          } catch(e) {\n            console.log('remote container already initialized')\n          }\n        }\n      })\n      return\n    }\n\n    const script = document.createElement('script')\n    script.src = remoteUrl\n    script.onload = () => {\n      const proxy = {\n        get: (request) => window['pimcore_studio_ui_bundle'].get(request),\n        init: (...arg) => {\n          try {\n            return window['pimcore_studio_ui_bundle'].init(...arg)\n          } catch(e) {\n            console.log('remote container already initialized')\n          }\n        }\n      }\n      resolve(proxy)\n    }\n    script.onerror = () => {\n      throw new Error('Failed to load required remote \"pimcore_studio_ui_bundle\" from ' + remoteUrl);\n    }\n    document.head.appendChild(script);\n  })\n  ",
       "moduleName": ".",
-      "alias": "@pimcore/studio-ui-bundle",
-      "entry": "*"
+      "usedIn": [
+        "js/src/plugins.ts + 11 modules"
+      ],
+      "version": "*"
     },
     {
+      "alias": "@pimcore/studio-ui-bundle",
+      "consumingFederationContainerName": "portadesign_data_quality_bundle",
       "federationContainerName": "promise new Promise((resolve) => {\n    const emptyContainer = {\n      get: () => Promise.resolve(() => ({})),\n      init: () => {}\n    }\n\n    const remoteUrl = window.StudioUIBundleRemoteUrl\n\n    if (!remoteUrl) {\n      throw new Error('Required remote \"pimcore_studio_ui_bundle\" is not available');\n      return\n    }\n\n    // Check if the container is already available\n    if (window['pimcore_studio_ui_bundle']) {\n      resolve({\n        get: (request) => window['pimcore_studio_ui_bundle'].get(request),\n        init: (...arg) => {\n          try {\n            return window['pimcore_studio_ui_bundle'].init(...arg)\n          } catch(e) {\n            console.log('remote container already initialized')\n          }\n        }\n      })\n      return\n    }\n\n    const script = document.createElement('script')\n    script.src = remoteUrl\n    script.onload = () => {\n      const proxy = {\n        get: (request) => window['pimcore_studio_ui_bundle'].get(request),\n        init: (...arg) => {\n          try {\n            return window['pimcore_studio_ui_bundle'].init(...arg)\n          } catch(e) {\n            console.log('remote container already initialized')\n          }\n        }\n      }\n      resolve(proxy)\n    }\n    script.onerror = () => {\n      throw new Error('Failed to load required remote \"pimcore_studio_ui_bundle\" from ' + remoteUrl);\n    }\n    document.head.appendChild(script);\n  })\n  ",
       "moduleName": "app",
-      "alias": "@pimcore/studio-ui-bundle",
-      "entry": "*"
+      "usedIn": [
+        "js/src/plugins.ts + 11 modules"
+      ],
+      "version": "*"
     },
     {
+      "alias": "@pimcore/studio-ui-bundle",
+      "consumingFederationContainerName": "portadesign_data_quality_bundle",
       "federationContainerName": "promise new Promise((resolve) => {\n    const emptyContainer = {\n      get: () => Promise.resolve(() => ({})),\n      init: () => {}\n    }\n\n    const remoteUrl = window.StudioUIBundleRemoteUrl\n\n    if (!remoteUrl) {\n      throw new Error('Required remote \"pimcore_studio_ui_bundle\" is not available');\n      return\n    }\n\n    // Check if the container is already available\n    if (window['pimcore_studio_ui_bundle']) {\n      resolve({\n        get: (request) => window['pimcore_studio_ui_bundle'].get(request),\n        init: (...arg) => {\n          try {\n            return window['pimcore_studio_ui_bundle'].init(...arg)\n          } catch(e) {\n            console.log('remote container already initialized')\n          }\n        }\n      })\n      return\n    }\n\n    const script = document.createElement('script')\n    script.src = remoteUrl\n    script.onload = () => {\n      const proxy = {\n        get: (request) => window['pimcore_studio_ui_bundle'].get(request),\n        init: (...arg) => {\n          try {\n            return window['pimcore_studio_ui_bundle'].init(...arg)\n          } catch(e) {\n            console.log('remote container already initialized')\n          }\n        }\n      }\n      resolve(proxy)\n    }\n    script.onerror = () => {\n      throw new Error('Failed to load required remote \"pimcore_studio_ui_bundle\" from ' + remoteUrl);\n    }\n    document.head.appendChild(script);\n  })\n  ",
       "moduleName": "components",
-      "alias": "@pimcore/studio-ui-bundle",
-      "entry": "*"
+      "usedIn": [
+        "js/src/plugins.ts + 11 modules"
+      ],
+      "version": "*"
     },
     {
+      "alias": "@pimcore/studio-ui-bundle",
+      "consumingFederationContainerName": "portadesign_data_quality_bundle",
       "federationContainerName": "promise new Promise((resolve) => {\n    const emptyContainer = {\n      get: () => Promise.resolve(() => ({})),\n      init: () => {}\n    }\n\n    const remoteUrl = window.StudioUIBundleRemoteUrl\n\n    if (!remoteUrl) {\n      throw new Error('Required remote \"pimcore_studio_ui_bundle\" is not available');\n      return\n    }\n\n    // Check if the container is already available\n    if (window['pimcore_studio_ui_bundle']) {\n      resolve({\n        get: (request) => window['pimcore_studio_ui_bundle'].get(request),\n        init: (...arg) => {\n          try {\n            return window['pimcore_studio_ui_bundle'].init(...arg)\n          } catch(e) {\n            console.log('remote container already initialized')\n          }\n        }\n      })\n      return\n    }\n\n    const script = document.createElement('script')\n    script.src = remoteUrl\n    script.onload = () => {\n      const proxy = {\n        get: (request) => window['pimcore_studio_ui_bundle'].get(request),\n        init: (...arg) => {\n          try {\n            return window['pimcore_studio_ui_bundle'].init(...arg)\n          } catch(e) {\n            console.log('remote container already initialized')\n          }\n        }\n      }\n      resolve(proxy)\n    }\n    script.onerror = () => {\n      throw new Error('Failed to load required remote \"pimcore_studio_ui_bundle\" from ' + remoteUrl);\n    }\n    document.head.appendChild(script);\n  })\n  ",
       "moduleName": "modules/app",
-      "alias": "@pimcore/studio-ui-bundle",
-      "entry": "*"
+      "usedIn": [
+        "js/src/plugins.ts + 11 modules"
+      ],
+      "version": "*"
     },
     {
+      "alias": "@pimcore/studio-ui-bundle",
+      "consumingFederationContainerName": "portadesign_data_quality_bundle",
       "federationContainerName": "promise new Promise((resolve) => {\n    const emptyContainer = {\n      get: () => Promise.resolve(() => ({})),\n      init: () => {}\n    }\n\n    const remoteUrl = window.StudioUIBundleRemoteUrl\n\n    if (!remoteUrl) {\n      throw new Error('Required remote \"pimcore_studio_ui_bundle\" is not available');\n      return\n    }\n\n    // Check if the container is already available\n    if (window['pimcore_studio_ui_bundle']) {\n      resolve({\n        get: (request) => window['pimcore_studio_ui_bundle'].get(request),\n        init: (...arg) => {\n          try {\n            return window['pimcore_studio_ui_bundle'].init(...arg)\n          } catch(e) {\n            console.log('remote container already initialized')\n          }\n        }\n      })\n      return\n    }\n\n    const script = document.createElement('script')\n    script.src = remoteUrl\n    script.onload = () => {\n      const proxy = {\n        get: (request) => window['pimcore_studio_ui_bundle'].get(request),\n        init: (...arg) => {\n          try {\n            return window['pimcore_studio_ui_bundle'].init(...arg)\n          } catch(e) {\n            console.log('remote container already initialized')\n          }\n        }\n      }\n      resolve(proxy)\n    }\n    script.onerror = () => {\n      throw new Error('Failed to load required remote \"pimcore_studio_ui_bundle\" from ' + remoteUrl);\n    }\n    document.head.appendChild(script);\n  })\n  ",
       "moduleName": "modules/element",
-      "alias": "@pimcore/studio-ui-bundle",
-      "entry": "*"
+      "usedIn": [
+        "js/src/plugins.ts + 11 modules"
+      ],
+      "version": "*"
     }
   ],
   "exposes": [
     {
+      "path": ".",
       "id": "portadesign_data_quality_bundle:.",
       "name": ".",
+      "requires": [
+        "react",
+        "antd",
+        "react-i18next"
+      ],
+      "file": "js/src/plugins.ts",
       "assets": {
         "js": {
           "sync": [
-            "static/js/async/__federation_expose_default_export.5ba6d086.js"
+            "static/js/async/__federation_expose_default_export.89140d90.js"
           ],
           "async": []
         },
@@ -151,8 +196,7 @@
           "sync": [],
           "async": []
         }
-      },
-      "path": "."
+      }
     }
   ]
 }

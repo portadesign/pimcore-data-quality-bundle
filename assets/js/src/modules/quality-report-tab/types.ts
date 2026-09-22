@@ -1,3 +1,10 @@
+export interface CheckGate {
+  workflow: string
+  transition: string
+  label: string
+  blocking: boolean
+}
+
 export interface QualityCheck {
   ruleId: string
   ruleName: string
@@ -6,6 +13,16 @@ export interface QualityCheck {
   weight: number
   targetKey: string | null
   label: string
+  gates?: CheckGate[]
+}
+
+export interface GateResult {
+  workflow: string
+  transition: string
+  label: string
+  requiredLevel: string
+  passed: boolean
+  failedChecks: QualityCheck[]
 }
 
 export interface QualityResultDto {
@@ -30,4 +47,5 @@ export interface QualityReport {
   overall: QualityResultDto
   byChannel: ChannelQualityResult[]
   byCategory: CategoryQualityResult[]
+  gates: GateResult[]
 }

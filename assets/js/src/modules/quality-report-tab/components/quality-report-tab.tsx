@@ -1,8 +1,8 @@
 import React from 'react'
-import { Alert, Card, Empty, Progress, Space, Spin, Statistic, Tooltip, Typography } from 'antd'
+import { Alert, Card, Empty, Progress, Space, Spin, Statistic, Tag, Tooltip, Typography } from 'antd'
 import { useTranslation } from 'react-i18next'
 import { useQualityReport } from '../hooks/use-quality-report'
-import { type ChannelQualityResult, type CategoryQualityResult, type QualityCheck, type QualityResultDto } from '../types'
+import { type ChannelQualityResult, type CategoryQualityResult, type GateResult, type QualityCheck, type QualityResultDto } from '../types'
 
 export interface QualityReportTabProps {
   objectId: number
@@ -88,11 +88,39 @@ const FieldTrafficLights = ({ checks }: { checks: QualityCheck[] }): React.JSX.E
                 }}
               />
               <Typography.Text style={{ fontSize: 12 }}>{label}</Typography.Text>
+              {(check.gates ?? []).map((gate) => (
+                <Tag
+                  key={`${gate.workflow}:${gate.transition}`}
+                  color={gate.blocking ? 'red' : 'default'}
+                  style={{ marginInlineEnd: 0, fontSize: 11, lineHeight: '16px' }}
+                >
+                  {gate.label}
+                </Tag>
+              ))}
             </div>
           </Tooltip>
         )
       })}
     </div>
+  )
+}
+
+const GatesBar = ({ gates }: { gates: GateResult[] }): React.JSX.Element | null => {
+  const { t } = useTranslation()
+
+  if (gates.length === 0) {
+    return null
+  }
+
+  return (
+    <Space wrap style={{ paddingLeft: 12 }}>
+      <Typography.Text strong>{t('portadesign_data_quality.gates.title')}</Typography.Text>
+      {gates.map((gate) => (
+        <Tag key={`${gate.workflow}:${gate.transition}`} color={gate.passed ? 'green' : 'red'}>
+          {gate.passed ? '✓' : '✕'} {gate.label}{gate.passed ? '' : ` (${gate.failedChecks.length})`}
+        </Tag>
+      ))}
+    </Space>
   )
 }
 
@@ -148,6 +176,8 @@ export const QualityReportTab = ({ objectId }: QualityReportTabProps): React.JSX
 
   return (
     <Space direction='vertical' size='large' style={{ width: '100%' }}>
+      <GatesBar gates={data.gates ?? []} />
+
       <ScopeResultCard title={t('portadesign_data_quality.report.overall')} result={data.overall} />
 
       {!hasScopes && (
