@@ -47,6 +47,10 @@ portadesign_data_quality:
         no_object: 'Není vybrán žádný objekt'
         no_report: 'Report kvality není k dispozici'
         no_scopes: 'Produkt není přiřazen k žádnému kanálu ani kategorii'
+    workflow:
+        blocked_title: 'Nedostupné přechody'
+        missing: 'Kvalita: chybí {{fields}}.'
+        open_report: 'Otevřít Data Quality'
     level:
         mandatory: 'Povinné'
         recommended: 'Doporučené'
