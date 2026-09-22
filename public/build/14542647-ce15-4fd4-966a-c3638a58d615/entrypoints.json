@@ -1,0 +1,28 @@
+{
+  "entrypoints": {
+    "main": {
+      "js": [
+        "/bundles/portadesigndataquality/build/14542647-ce15-4fd4-966a-c3638a58d615/static/js/async/331.299fff9c.js",
+        "/bundles/portadesigndataquality/build/14542647-ce15-4fd4-966a-c3638a58d615/static/js/async/379.85ba46c5.js",
+        "/bundles/portadesigndataquality/build/14542647-ce15-4fd4-966a-c3638a58d615/static/js/109.a568a5a0.js",
+        "/bundles/portadesigndataquality/build/14542647-ce15-4fd4-966a-c3638a58d615/static/js/main.a9175419.js"
+      ],
+      "css": []
+    },
+    "portadesign_data_quality_bundle": {
+      "js": [
+        "/bundles/portadesigndataquality/build/14542647-ce15-4fd4-966a-c3638a58d615/static/js/async/331.299fff9c.js",
+        "/bundles/portadesigndataquality/build/14542647-ce15-4fd4-966a-c3638a58d615/static/js/async/__federation_expose_default_export.b9c8c0e8.js",
+        "/bundles/portadesigndataquality/build/14542647-ce15-4fd4-966a-c3638a58d615/static/js/async/379.85ba46c5.js",
+        "/bundles/portadesigndataquality/build/14542647-ce15-4fd4-966a-c3638a58d615/static/js/remoteEntry.js"
+      ],
+      "css": []
+    },
+    "exposeRemote": {
+      "js": [
+        "/bundles/portadesigndataquality/build/14542647-ce15-4fd4-966a-c3638a58d615/exposeRemote.js"
+      ],
+      "css": []
+    }
+  }
+}

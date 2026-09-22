@@ -13,7 +13,7 @@ user-management:
 'Dependent Objects': 'Závislé objekty'
 'Scope this rule to one or more DataObjects of any class (e.g. specific Channels and/or Categories). The rule applies only when the product is linked to ALL of the listed objects, not any one of them. Leave empty to apply the rule unconditionally.': 'Omezí pravidlo na jeden nebo více DataObjects libovolné třídy (např. konkrétní kanály a/nebo kategorie). Pravidlo platí, jen když je produkt propojen se VŠEMI uvedenými objekty, nestačí jen některý z nich. Ponechte prázdné, aby pravidlo platilo vždy.'
 'Target Key': 'Cílový klíč'
-'The core field or Classification Store key this rule checks. Data Object fields and Classification Store keys ("Field: "/"CS Key: " prefixes) are both offered - which kind it is gets inferred from the value, not chosen separately.': 'Pole objektu nebo klíč Classification Store, který pravidlo kontroluje. Nabízejí se pole Data Object i klíče Classification Store (předpony „Field: “/„CS Key: “) – o jaký typ jde, se odvodí z hodnoty, nevybírá se zvlášť.'
+'The core field or Classification Store key this rule checks. Data Object fields and Classification Store keys ("Field: "/"CS Key: " prefixes) are both offered - which kind it is gets inferred from the value, not chosen separately.': 'Pole objektu nebo klíč Classification Store, který pravidlo kontroluje. Nabízejí se pole Data Object i klíče Classification Store (předpony „Pole: “/„Klíč CS: “) – o jaký typ jde, se odvodí z hodnoty, nevybírá se zvlášť.'
 'Requirement Level': 'Úroveň požadavku'
 'mandatory rules determine the quality score; recommended/optional rules are reported but do not affect the score.': 'Povinná pravidla určují skóre kvality; doporučená a volitelná pravidla se jen zobrazují a skóre neovlivňují.'
 'Mandatory': 'Povinné'
@@ -23,3 +23,29 @@ user-management:
 'Relative weight of this rule within the mandatory-rule score calculation.': 'Relativní váha tohoto pravidla ve výpočtu skóre z povinných pravidel.'
 'Active': 'Aktivní'
 'Inactive rules are ignored during evaluation.': 'Neaktivní pravidla se při vyhodnocení ignorují.'
+portadesign_data_quality:
+    report:
+        overall: 'Celkově'
+        by_channel: 'Podle kanálu'
+        by_category: 'Podle kategorie'
+        mandatory_rules: 'Povinná pravidla'
+        complete: 'Splněno'
+        incomplete: 'Nesplněno'
+        level_weight: '{{level}} · váha {{weight}}'
+        load_failed: 'Report kvality se nepodařilo načíst'
+        retry: 'Zkusit znovu'
+        no_object: 'Není vybrán žádný objekt'
+        no_report: 'Report kvality není k dispozici'
+        no_scopes: 'Produkt není přiřazen k žádnému kanálu ani kategorii'
+    level:
+        mandatory: 'Povinné'
+        recommended: 'Doporučené'
+        optional: 'Volitelné'
+    description:
+        global: 'Globální'
+        weight: 'Váha %weight%'
+        inactive: '[neaktivní]'
+        no_target_key: '(bez cílového klíče)'
+    option:
+        field: 'Pole: %label%'
+        cs_key: 'Klíč CS: %label%'

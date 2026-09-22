@@ -11,8 +11,10 @@ use Pimcore\Model\DataObject\Concrete;
 use Pimcore\Model\DataObject\DataQualityConfiguration;
 use Pimcore\Model\Element\AbstractElement;
 use Portadesign\DataQualityBundle\Contract\ClassificationStoreKeyResolverInterface;
+use Pimcore\Security\User\TokenStorageUserResolver;
 use Portadesign\DataQualityBundle\Contract\QualityConfigurationInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Generates DataQualityRule.description (readonly in the Studio editor) from targetKey +
@@ -23,6 +25,8 @@ final class DataQualityRuleDescriptionListener implements EventSubscriberInterfa
 {
     public function __construct(
         private readonly ClassificationStoreKeyResolverInterface $keyResolver,
+        private readonly TranslatorInterface $translator,
+        private readonly TokenStorageUserResolver $userResolver,
         private readonly int $classificationStoreId,
     ) {
     }
@@ -56,6 +60,7 @@ final class DataQualityRuleDescriptionListener implements EventSubscriberInterfa
         }
 
         $targetClass = $subject->getTargetClass();
+        $locale = $this->userResolver->getUser()?->getLanguage();
 
         foreach ($rules->getItems() as $rule) {
             /** @phpstan-ignore instanceof.alwaysTrue, function.alreadyNarrowedType */
@@ -63,21 +68,28 @@ final class DataQualityRuleDescriptionListener implements EventSubscriberInterfa
                 continue;
             }
 
-            $rule->setDescription($this->buildDescription($rule, $targetClass, $csKeyTitlesByCode));
+            $rule->setDescription($this->buildDescription($rule, $targetClass, $csKeyTitlesByCode, $locale));
         }
     }
 
     /**
      * @param array<string, string> $csKeyTitlesByCode
      */
-    private function buildDescription(QualityConfigurationInterface $rule, ?string $targetClass, array $csKeyTitlesByCode): string
+    private function buildDescription(QualityConfigurationInterface $rule, ?string $targetClass, array $csKeyTitlesByCode, ?string $locale): string
     {
-        $scope = $this->resolveScopeLabel($rule->getDependentObjects());
-        $keyLabel = $this->resolveKeyLabel($rule->getTargetKey(), $targetClass, $csKeyTitlesByCode);
-        $level = \ucfirst($rule->getRequirementLevel() ?? '?');
+        $scope = $this->resolveScopeLabel($rule->getDependentObjects(), $locale);
+        $keyLabel = $this->resolveKeyLabel($rule->getTargetKey(), $targetClass, $csKeyTitlesByCode, $locale);
+        $requirementLevel = $rule->getRequirementLevel();
+        $level = $requirementLevel !== null && $requirementLevel !== ''
+            ? $this->trans('portadesign_data_quality.level.' . $requirementLevel, $locale)
+            : '?';
         $weight = $rule->getWeight();
-        $weightSuffix = $weight !== null ? ' / Weight ' . (int) $weight : '';
-        $inactiveSuffix = $rule->getActive() === false ? ' [inactive]' : '';
+        $weightSuffix = $weight !== null
+            ? ' / ' . $this->trans('portadesign_data_quality.description.weight', $locale, ['%weight%' => (int) $weight])
+            : '';
+        $inactiveSuffix = $rule->getActive() === false
+            ? ' ' . $this->trans('portadesign_data_quality.description.inactive', $locale)
+            : '';
 
         return \sprintf('%s / %s / %s%s%s', $scope, $keyLabel, $level, $weightSuffix, $inactiveSuffix);
     }
@@ -85,7 +97,7 @@ final class DataQualityRuleDescriptionListener implements EventSubscriberInterfa
     /**
      * @param list<AbstractElement> $dependentObjects
      */
-    private function resolveScopeLabel(array $dependentObjects): string
+    private function resolveScopeLabel(array $dependentObjects, ?string $locale): string
     {
         $labels = [];
 
@@ -97,7 +109,7 @@ final class DataQualityRuleDescriptionListener implements EventSubscriberInterfa
             $labels[] = $this->resolveDependentObjectLabel($dependentObject);
         }
 
-        return $labels === [] ? 'Global' : \implode(' + ', $labels);
+        return $labels === [] ? $this->trans('portadesign_data_quality.description.global', $locale) : \implode(' + ', $labels);
     }
 
     private function resolveDependentObjectLabel(Concrete $dependentObject): string
@@ -114,10 +126,10 @@ final class DataQualityRuleDescriptionListener implements EventSubscriberInterfa
     /**
      * @param array<string, string> $csKeyTitlesByCode
      */
-    private function resolveKeyLabel(?string $targetKey, ?string $targetClassName, array $csKeyTitlesByCode): string
+    private function resolveKeyLabel(?string $targetKey, ?string $targetClassName, array $csKeyTitlesByCode, ?string $locale): string
     {
         if ($targetKey === null || $targetKey === '') {
-            return '(no target key)';
+            return $this->trans('portadesign_data_quality.description.no_target_key', $locale);
         }
 
         if ($targetClassName !== null && $targetClassName !== '') {
@@ -138,5 +150,13 @@ final class DataQualityRuleDescriptionListener implements EventSubscriberInterfa
         // Localized fields (Product.name/description) are nested under "localizedfields", not
         // found by the lookup above - same gap TargetKeyOptionsProvider's dropdown has.
         return \ucfirst($targetKey);
+    }
+
+    /**
+     * @param array<string, string|int> $parameters
+     */
+    private function trans(string $key, ?string $locale, array $parameters = []): string
+    {
+        return $this->translator->trans($key, $parameters, 'studio', $locale);
     }
 }

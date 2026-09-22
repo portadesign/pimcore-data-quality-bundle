@@ -6,12 +6,16 @@ namespace Portadesign\DataQualityBundle\Tests\EventListener;
 
 use Pimcore\Event\Model\DataObjectEvent;
 use Pimcore\Model\DataObject\Fieldcollection;
+use Pimcore\Security\User\TokenStorageUserResolver;
 use PHPUnit\Framework\TestCase;
 use Portadesign\DataQualityBundle\Contract\ClassificationStoreKeyResolverInterface;
 use Portadesign\DataQualityBundle\EventListener\DataQualityRuleDescriptionListener;
 use Portadesign\DataQualityBundle\Tests\Fixture\FakeDataQualityConfiguration;
 use Portadesign\DataQualityBundle\Tests\Fixture\FakeMutableQualityRule;
 use Portadesign\DataQualityBundle\Tests\Fixture\FakeNamedScopeObject;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;
+use Symfony\Component\Translation\Loader\YamlFileLoader;
+use Symfony\Component\Translation\Translator;
 
 /**
  * Pins DataQualityRuleDescriptionListener::onPreSave()'s generated description, in particular the
@@ -93,7 +97,16 @@ final class DataQualityRuleDescriptionListenerTest extends TestCase
         $keyResolver = $this->createStub(ClassificationStoreKeyResolverInterface::class);
         $keyResolver->method('listActiveKeys')->willReturn([]);
 
-        $listener = new DataQualityRuleDescriptionListener($keyResolver, 1);
+        $translator = new Translator('en');
+        $translator->addLoader('yaml', new YamlFileLoader());
+        $translator->addResource('yaml', __DIR__ . '/../../Resources/translations/studio.en.yml', 'en', 'studio');
+
+        $listener = new DataQualityRuleDescriptionListener(
+            $keyResolver,
+            $translator,
+            new TokenStorageUserResolver(new TokenStorage()),
+            1,
+        );
 
         $subject = new FakeDataQualityConfiguration();
         $subject->setFakeRules(new Fieldcollection($rules));

@@ -1,5 +1,6 @@
 import React from 'react'
 import { Alert, Card, Empty, Progress, Space, Spin, Statistic, Tooltip, Typography } from 'antd'
+import { useTranslation } from 'react-i18next'
 import { useQualityReport } from '../hooks/use-quality-report'
 import { type ChannelQualityResult, type CategoryQualityResult, type QualityCheck, type QualityResultDto } from '../types'
 
@@ -40,6 +41,8 @@ const colorRank: Record<LightColor, number> = { red: 0, gold: 1, green: 2 }
 // rule's own description for unscoped or legacy rules with no targetKey) - the full rule name is
 // always available on hover via the tooltip.
 const FieldTrafficLights = ({ checks }: { checks: QualityCheck[] }): React.JSX.Element | null => {
+  const { t } = useTranslation()
+
   if (checks.length === 0) {
     return null
   }
@@ -58,7 +61,7 @@ const FieldTrafficLights = ({ checks }: { checks: QualityCheck[] }): React.JSX.E
             title={
               <Space direction='vertical' size={0}>
                 <Typography.Text strong style={{ color: 'inherit' }}>{check.ruleName}</Typography.Text>
-                <Typography.Text style={{ color: 'inherit' }}>{check.level} · weight {check.weight}</Typography.Text>
+                <Typography.Text style={{ color: 'inherit' }}>{t('portadesign_data_quality.report.level_weight', { level: t(`portadesign_data_quality.level.${check.level}`), weight: check.weight })}</Typography.Text>
               </Space>
             }
           >
@@ -93,23 +96,28 @@ const FieldTrafficLights = ({ checks }: { checks: QualityCheck[] }): React.JSX.E
   )
 }
 
-const ScopeResultCard = ({ title, result }: { title: string, result: QualityResultDto }): React.JSX.Element => (
-  <Card size='small' title={title} style={{ marginBottom: 12 }}>
-    <Space direction='vertical' size='middle' style={{ width: '100%' }}>
-      <Space size='large' align='center'>
-        <Progress type='circle' size={64} percent={result.score} status={progressStatus(result)} />
-        <Statistic
-          title='Mandatory rules'
-          value={result.mandatoryComplete ? 'Complete' : 'Incomplete'}
-          valueStyle={{ color: result.mandatoryComplete ? '#3f8600' : '#cf1322' }}
-        />
+const ScopeResultCard = ({ title, result }: { title: string, result: QualityResultDto }): React.JSX.Element => {
+  const { t } = useTranslation()
+
+  return (
+    <Card size='small' title={title} style={{ marginBottom: 12 }}>
+      <Space direction='vertical' size='middle' style={{ width: '100%' }}>
+        <Space size='large' align='center'>
+          <Progress type='circle' size={64} percent={result.score} status={progressStatus(result)} />
+          <Statistic
+            title={t('portadesign_data_quality.report.mandatory_rules')}
+            value={t(result.mandatoryComplete ? 'portadesign_data_quality.report.complete' : 'portadesign_data_quality.report.incomplete')}
+            valueStyle={{ color: result.mandatoryComplete ? '#3f8600' : '#cf1322' }}
+          />
+        </Space>
+        <FieldTrafficLights checks={result.checks} />
       </Space>
-      <FieldTrafficLights checks={result.checks} />
-    </Space>
-  </Card>
-)
+    </Card>
+  )
+}
 
 export const QualityReportTab = ({ objectId }: QualityReportTabProps): React.JSX.Element => {
+  const { t } = useTranslation()
   const { data, loading, error, refetch } = useQualityReport(objectId)
 
   if (loading && data === null) {
@@ -123,32 +131,32 @@ export const QualityReportTab = ({ objectId }: QualityReportTabProps): React.JSX
   if (error !== null) {
     return (
       <Alert
-        message='Failed to load quality report'
+        message={t('portadesign_data_quality.report.load_failed')}
         description={error}
         type='error'
         showIcon
-        action={<Typography.Link onClick={refetch}>Retry</Typography.Link>}
+        action={<Typography.Link onClick={refetch}>{t('portadesign_data_quality.report.retry')}</Typography.Link>}
       />
     )
   }
 
   if (data === null) {
-    return <Empty description='No quality report available' />
+    return <Empty description={t('portadesign_data_quality.report.no_report')} />
   }
 
   const hasScopes = data.byChannel.length > 0 || data.byCategory.length > 0
 
   return (
     <Space direction='vertical' size='large' style={{ width: '100%' }}>
-      <ScopeResultCard title='Overall' result={data.overall} />
+      <ScopeResultCard title={t('portadesign_data_quality.report.overall')} result={data.overall} />
 
       {!hasScopes && (
-        <Empty description='This product is not assigned to any channel or category' />
+        <Empty description={t('portadesign_data_quality.report.no_scopes')} />
       )}
 
       {data.byChannel.length > 0 && (
         <div>
-          <Typography.Title level={5} style={{ paddingLeft: 12 }}>By channel</Typography.Title>
+          <Typography.Title level={5} style={{ paddingLeft: 12 }}>{t('portadesign_data_quality.report.by_channel')}</Typography.Title>
           {data.byChannel.map((channel: ChannelQualityResult) => (
             <ScopeResultCard key={channel.channelId} title={channel.channelName} result={channel} />
           ))}
@@ -157,7 +165,7 @@ export const QualityReportTab = ({ objectId }: QualityReportTabProps): React.JSX
 
       {data.byCategory.length > 0 && (
         <div>
-          <Typography.Title level={5} style={{ paddingLeft: 12 }}>By category</Typography.Title>
+          <Typography.Title level={5} style={{ paddingLeft: 12 }}>{t('portadesign_data_quality.report.by_category')}</Typography.Title>
           {data.byCategory.map((category: CategoryQualityResult) => (
             <ScopeResultCard key={category.categoryId} title={category.categoryName} result={category} />
           ))}

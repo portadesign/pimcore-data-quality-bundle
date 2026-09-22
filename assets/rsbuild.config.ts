@@ -92,10 +92,8 @@ export default defineConfig({
           requiredVersion: false
         },
         // Keeps this remote from bundling its own copy of the i18next/react-i18next *library*
-        // code alongside Studio UI's — see the AI bundle's rsbuild.config.ts for the full
-        // explanation of why this alone doesn't solve translation-instance mismatches (it
-        // doesn't apply here since this tab has no translation keys, but kept consistent with
-        // the AI bundle's federation config so the two remotes don't fight over module versions).
+        // code alongside Studio UI's, so useTranslation() resolves against Studio's own instance,
+        // which already holds the backend `studio` catalogue (Resources/translations/studio.*.yml).
         i18next: {
           singleton: true,
           requiredVersion: false

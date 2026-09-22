@@ -9,7 +9,9 @@ use Pimcore\Model\DataObject\ClassDefinition\Data;
 use Pimcore\Model\DataObject\ClassDefinition\DynamicOptionsProvider\SelectOptionsProviderInterface;
 use Pimcore\Model\DataObject\DataQualityConfiguration;
 use Pimcore\Model\DataObject\Fieldcollection\Data\AbstractData;
+use Pimcore\Security\User\TokenStorageUserResolver;
 use Portadesign\DataQualityBundle\Contract\ClassificationStoreKeyResolverInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Options for DataQualityRule.targetKey: the union of the owning DataQualityConfiguration's
@@ -23,6 +25,8 @@ final class TargetKeyOptionsProvider implements SelectOptionsProviderInterface
 {
     public function __construct(
         private readonly ClassificationStoreKeyResolverInterface $keyResolver,
+        private readonly TranslatorInterface $translator,
+        private readonly TokenStorageUserResolver $userResolver,
         private readonly int $classificationStoreId,
     ) {
     }
@@ -40,9 +44,11 @@ final class TargetKeyOptionsProvider implements SelectOptionsProviderInterface
             return [];
         }
 
+        $locale = $this->userResolver->getUser()?->getLanguage();
+
         return [
-            ...$this->coreFieldOptions($configuration->getTargetClass()),
-            ...$this->classificationStoreKeyOptions(),
+            ...$this->coreFieldOptions($configuration->getTargetClass(), $locale),
+            ...$this->classificationStoreKeyOptions($locale),
         ];
     }
 
@@ -85,7 +91,7 @@ final class TargetKeyOptionsProvider implements SelectOptionsProviderInterface
     /**
      * @return list<array{key: string, value: string}>
      */
-    private function coreFieldOptions(?string $targetClassName): array
+    private function coreFieldOptions(?string $targetClassName, ?string $locale): array
     {
         if ($targetClassName === null || $targetClassName === '') {
             return [];
@@ -104,7 +110,11 @@ final class TargetKeyOptionsProvider implements SelectOptionsProviderInterface
                 continue;
             }
 
-            $options[] = ['key' => 'Field: ' . ($fieldDefinition->getTitle() ?: $fieldDefinition->getName()), 'value' => $fieldDefinition->getName()];
+            $name = (string) $fieldDefinition->getName();
+            $options[] = [
+                'key' => $this->prefixedLabel('portadesign_data_quality.option.field', $fieldDefinition->getTitle() ?: $name, $locale),
+                'value' => $name,
+            ];
         }
 
         return $options;
@@ -113,11 +123,19 @@ final class TargetKeyOptionsProvider implements SelectOptionsProviderInterface
     /**
      * @return list<array{key: string, value: string}>
      */
-    private function classificationStoreKeyOptions(): array
+    private function classificationStoreKeyOptions(?string $locale): array
     {
         return \array_map(
-            static fn (array $key): array => ['key' => 'CS Key: ' . ($key['title'] ?: $key['code']), 'value' => $key['code']],
+            fn (array $key): array => [
+                'key' => $this->prefixedLabel('portadesign_data_quality.option.cs_key', $key['title'] ?: $key['code'], $locale),
+                'value' => $key['code'],
+            ],
             $this->keyResolver->listActiveKeys($this->classificationStoreId),
         );
+    }
+
+    private function prefixedLabel(string $key, string $label, ?string $locale): string
+    {
+        return $this->translator->trans($key, ['%label%' => $label], 'studio', $locale);
     }
 }

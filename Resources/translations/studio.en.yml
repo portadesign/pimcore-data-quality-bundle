@@ -23,3 +23,29 @@ user-management:
 'Relative weight of this rule within the mandatory-rule score calculation.': 'Relative weight of this rule within the mandatory-rule score calculation.'
 'Active': 'Active'
 'Inactive rules are ignored during evaluation.': 'Inactive rules are ignored during evaluation.'
+portadesign_data_quality:
+    report:
+        overall: 'Overall'
+        by_channel: 'By channel'
+        by_category: 'By category'
+        mandatory_rules: 'Mandatory rules'
+        complete: 'Complete'
+        incomplete: 'Incomplete'
+        level_weight: '{{level}} · weight {{weight}}'
+        load_failed: 'Failed to load quality report'
+        retry: 'Retry'
+        no_object: 'No object selected'
+        no_report: 'No quality report available'
+        no_scopes: 'This product is not assigned to any channel or category'
+    level:
+        mandatory: 'Mandatory'
+        recommended: 'Recommended'
+        optional: 'Optional'
+    description:
+        global: 'Global'
+        weight: 'Weight %weight%'
+        inactive: '[inactive]'
+        no_target_key: '(no target key)'
+    option:
+        field: 'Field: %label%'
+        cs_key: 'CS Key: %label%'
