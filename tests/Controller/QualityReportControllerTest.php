@@ -9,8 +9,11 @@ use Portadesign\DataQualityBundle\Contract\ClassificationStoreKeyResolverInterfa
 use Portadesign\DataQualityBundle\Controller\QualityReportController;
 use Portadesign\DataQualityBundle\Resolver\QualityConfigurationResolver;
 use Portadesign\DataQualityBundle\Service\QualityEvaluationService;
+use Portadesign\DataQualityBundle\Service\QualityGateEvaluator;
+use Portadesign\DataQualityBundle\Tests\Fixture\CreatesQualityGateEvaluator;
 use Portadesign\DataQualityBundle\Tests\Fixture\FakeCoreFieldObject;
 use Portadesign\DataQualityBundle\Tests\Fixture\FakeProduct;
+use Portadesign\DataQualityBundle\Tests\Fixture\FakeQualityGate;
 use Portadesign\DataQualityBundle\Tests\Fixture\FakeQualityRule;
 use Portadesign\DataQualityBundle\Tests\Fixture\FakeRuleChecker;
 use Psr\Log\NullLogger;
@@ -24,6 +27,8 @@ use Psr\Log\NullLogger;
  */
 final class QualityReportControllerTest extends TestCase
 {
+    use CreatesQualityGateEvaluator;
+
     public function testBuildReportAssemblesOverallByChannelAndByCategory(): void
     {
         $channel = new FakeCoreFieldObject();
@@ -95,13 +100,31 @@ final class QualityReportControllerTest extends TestCase
         self::assertSame('unnamed-channel', $report['byChannel'][0]['channelName']);
     }
 
+    public function testBuildReportListsGatesAndAnnotatesGatedChecks(): void
+    {
+        $product = new FakeProduct();
+        $rules = [
+            new FakeQualityRule(id: 1, targetKey: null, requirementLevel: 'mandatory'),
+            new FakeQualityRule(id: 2, targetKey: null, requirementLevel: 'recommended'),
+        ];
+        $gateEvaluator = $this->createGateEvaluator([new FakeQualityGate('product:publish')], $rules, ['1' => false, '2' => false]);
+
+        $report = $this->makeController($rules, [], $gateEvaluator)->buildReport($product);
+
+        self::assertSame('publish', $report['gates'][0]['transition']);
+        self::assertFalse($report['gates'][0]['passed']);
+        $checksByRule = \array_column($report['overall']['checks'], null, 'ruleId');
+        self::assertSame([['workflow' => 'product', 'transition' => 'publish', 'label' => 'Publish', 'blocking' => true]], $checksByRule['1']['gates']);
+        self::assertSame([], $checksByRule['2']['gates']);
+    }
+
     /**
      * @param list<FakeQualityRule> $rules
      * @param list<FakeCoreFieldObject> $knownScopes channel/category objects referenced by $rules,
      *                                                needed so the stubbed resolver's filter() can
      *                                                do real id-based scope matching
      */
-    private function makeController(array $rules, array $knownScopes): QualityReportController
+    private function makeController(array $rules, array $knownScopes, ?QualityGateEvaluator $gateEvaluator = null): QualityReportController
     {
         $resolver = $this->createStub(QualityConfigurationResolver::class);
         $resolver->method('loadActiveRules')->willReturn($rules);
@@ -142,6 +165,7 @@ final class QualityReportControllerTest extends TestCase
             new NullLogger(),
             'channels',
             'categories',
+            $gateEvaluator ?? $this->createGateEvaluator([], [], []),
         );
     }
 }

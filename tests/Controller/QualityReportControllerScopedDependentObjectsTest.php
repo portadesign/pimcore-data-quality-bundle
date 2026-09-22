@@ -9,6 +9,7 @@ use Portadesign\DataQualityBundle\Contract\ClassificationStoreKeyResolverInterfa
 use Portadesign\DataQualityBundle\Controller\QualityReportController;
 use Portadesign\DataQualityBundle\Resolver\QualityConfigurationResolver;
 use Portadesign\DataQualityBundle\Service\QualityEvaluationService;
+use Portadesign\DataQualityBundle\Tests\Fixture\CreatesQualityGateEvaluator;
 use Portadesign\DataQualityBundle\Tests\Fixture\FakeCoreFieldObject;
 use Portadesign\DataQualityBundle\Tests\Fixture\FakeProduct;
 use Portadesign\DataQualityBundle\Tests\Fixture\FakeQualityRule;
@@ -32,6 +33,8 @@ use Psr\Log\NullLogger;
  */
 final class QualityReportControllerScopedDependentObjectsTest extends TestCase
 {
+    use CreatesQualityGateEvaluator;
+
     private const int CATEGORY_SPRCHOVE_KOUTY = 477;
 
     private const int CATEGORY_WC_KOMBI = 485;
@@ -169,6 +172,7 @@ final class QualityReportControllerScopedDependentObjectsTest extends TestCase
             new NullLogger(),
             'channels',
             'categories',
+            $this->createGateEvaluator([], [], []),
         );
 
         return $controller->buildReport($product);

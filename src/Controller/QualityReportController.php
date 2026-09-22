@@ -7,10 +7,12 @@ namespace Portadesign\DataQualityBundle\Controller;
 use Pimcore\Model\DataObject\Concrete;
 use Pimcore\Model\DataObject\Product;
 use Portadesign\DataQualityBundle\Contract\QualityConfigurationInterface;
+use Portadesign\DataQualityBundle\Dto\GateResult;
 use Portadesign\DataQualityBundle\Dto\QualityResult;
 use Portadesign\DataQualityBundle\Installer;
 use Portadesign\DataQualityBundle\Resolver\QualityConfigurationResolver;
 use Portadesign\DataQualityBundle\Service\QualityEvaluationService;
+use Portadesign\DataQualityBundle\Service\QualityGateEvaluator;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -37,6 +39,7 @@ class QualityReportController extends AbstractController
         private readonly string $channelRelationFieldName,
         #[Autowire('%portadesign_data_quality.category_relation_field_name%')]
         private readonly string $categoryRelationFieldName,
+        private readonly QualityGateEvaluator $gateEvaluator,
     ) {
     }
 
@@ -58,7 +61,7 @@ class QualityReportController extends AbstractController
      * assembly) is unit-testable without a booted Pimcore kernel/DB — only the thin
      * Concrete::getById() lookup above needs one.
      *
-     * @return array{overall: array<string, mixed>, byChannel: list<array<string, mixed>>, byCategory: list<array<string, mixed>>}
+     * @return array{overall: array<string, mixed>, byChannel: list<array<string, mixed>>, byCategory: list<array<string, mixed>>, gates: list<array<string, mixed>>}
      */
     public function buildReport(Product $object): array
     {
@@ -94,10 +97,13 @@ class QualityReportController extends AbstractController
             ];
         }
 
+        $gates = $this->evaluateGatesSafely($object);
+
         return [
-            'overall' => [...$overall->toArray(), 'channelId' => null, 'categoryId' => null],
-            'byChannel' => $byChannel,
-            'byCategory' => $byCategory,
+            'overall' => $this->annotateGates([...$overall->toArray(), 'channelId' => null, 'categoryId' => null], $gates),
+            'byChannel' => \array_map(fn (array $result): array => $this->annotateGates($result, $gates), $byChannel),
+            'byCategory' => \array_map(fn (array $result): array => $this->annotateGates($result, $gates), $byCategory),
+            'gates' => \array_map(static fn (GateResult $gate): array => $gate->toArray(), $gates),
         ];
     }
 
@@ -126,6 +132,52 @@ class QualityReportController extends AbstractController
                 checks: [],
             );
         }
+    }
+
+    /**
+     * @return list<GateResult>
+     */
+    private function evaluateGatesSafely(Product $object): array
+    {
+        try {
+            return $this->gateEvaluator->evaluateAll($object);
+        } catch (\Throwable $exception) {
+            $this->logger->error('QualityReportController: failed evaluating quality gates for product {productId}: {message}', [
+                'productId' => $object->getId(),
+                'message' => $exception->getMessage(),
+                'exception' => $exception,
+            ]);
+
+            return [];
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $result
+     * @param list<GateResult>     $gates
+     *
+     * @return array<string, mixed>
+     */
+    private function annotateGates(array $result, array $gates): array
+    {
+        $result['checks'] = \array_map(static function (array $check) use ($gates): array {
+            $check['gates'] = [];
+
+            foreach ($gates as $gate) {
+                if ($gate->covers($check['ruleId'])) {
+                    $check['gates'][] = [
+                        'workflow' => $gate->workflow,
+                        'transition' => $gate->transition,
+                        'label' => $gate->label,
+                        'blocking' => $gate->blocks($check['ruleId']),
+                    ];
+                }
+            }
+
+            return $check;
+        }, (array) ($result['checks'] ?? []));
+
+        return $result;
     }
 
     /**
