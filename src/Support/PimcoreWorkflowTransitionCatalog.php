@@ -73,11 +73,11 @@ final class PimcoreWorkflowTransitionCatalog implements WorkflowTransitionCatalo
 
         try {
             $subject = (new \ReflectionClass($subjectClass))->newInstanceWithoutConstructor();
-        } catch (\ReflectionException) {
+
+            return $this->workflowManager->getWorkflowIfExists($subject, $workflowName) !== null;
+        } catch (\Throwable) {
             return false;
         }
-
-        return $this->workflowManager->getWorkflowIfExists($subject, $workflowName) !== null;
     }
 
     private function labelOf(Transition $transition): string
