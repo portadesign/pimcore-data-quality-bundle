@@ -8,6 +8,7 @@ use Pimcore\Bundle\StudioBackendBundle\Workflow\Event\PreResponse\WorkflowDetail
 use Pimcore\Model\DataObject\Concrete;
 use Pimcore\Workflow\Manager;
 use Pimcore\Workflow\Transition as PimcoreTransition;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Workflow\Transition;
@@ -22,6 +23,7 @@ final class WorkflowDetailsSubscriber implements EventSubscriberInterface
     public function __construct(
         private readonly Manager $workflowManager,
         private readonly RequestStack $requestStack,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
@@ -44,7 +46,19 @@ final class WorkflowDetailsSubscriber implements EventSubscriberInterface
             return;
         }
 
-        $event->addAdditionalAttribute(self::ATTRIBUTE, $this->collectBlockedTransitions($workflow, $subject));
+        try {
+            $blockedTransitions = $this->collectBlockedTransitions($workflow, $subject);
+        } catch (\Throwable $exception) {
+            $this->logger->error('Failed to collect blocked transitions for workflow {workflow}: {message}', [
+                'workflow' => $event->getWorkflowDetails()->getWorkflowName(),
+                'message' => $exception->getMessage(),
+                'exception' => $exception,
+            ]);
+
+            return;
+        }
+
+        $event->addAdditionalAttribute(self::ATTRIBUTE, $blockedTransitions);
     }
 
     /**

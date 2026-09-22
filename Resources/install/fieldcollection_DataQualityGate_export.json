@@ -97,7 +97,7 @@
             "invisible": false,
             "visibleGridView": true,
             "visibleSearch": false,
-            "defaultValue": true,
+            "defaultValue": 1,
             "width": "",
             "datatype": "data"
           }

@@ -30,7 +30,7 @@ final class QualityEvaluationService
     }
 
     /**
-     * Single-scope convenience; no production caller — see evaluateForScope().
+     * Single-scope convenience, called by QualityGateEvaluator; see evaluateForScope() for the multi-scope entry point.
      *
      * @param list<Concrete>                           $scopeObjects Rules with a non-empty `dependentObjects` apply only if all of them are in this list.
      * @param list<QualityConfigurationInterface>|null $activeRules  Pre-fetched via QualityConfigurationResolver::loadActiveRules(); null resolves/queries internally.

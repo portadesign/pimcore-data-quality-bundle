@@ -8,6 +8,7 @@ use PHPUnit\Framework\TestCase;
 use Pimcore\Workflow\Manager;
 use Portadesign\DataQualityBundle\EventSubscriber\WorkflowDetailsSubscriber;
 use Portadesign\DataQualityBundle\Tests\Fixture\FakeWorkflowSubject;
+use Psr\Log\NullLogger;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Workflow\Definition;
@@ -55,6 +56,6 @@ final class WorkflowDetailsSubscriberTest extends TestCase
 
     private function subscriber(): WorkflowDetailsSubscriber
     {
-        return new WorkflowDetailsSubscriber($this->createStub(Manager::class), new RequestStack());
+        return new WorkflowDetailsSubscriber($this->createStub(Manager::class), new RequestStack(), new NullLogger());
     }
 }
