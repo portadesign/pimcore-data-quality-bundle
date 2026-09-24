@@ -168,12 +168,65 @@ final class ProductQualityPostUpdateListenerTest extends TestCase
         $listener->onPostUpdate(new DataObjectEvent($product, ['isAutoSave' => true]));
     }
 
-    public function testSubscribesToPostUpdateAtPriorityTenSoItRunsBeforeGenericDataIndex(): void
+    public function testSubscribesToPostAddAndPostUpdateAtPriorityTenSoItRunsBeforeGenericDataIndex(): void
     {
         self::assertSame(
-            [DataObjectEvents::POST_UPDATE => ['onPostUpdate', 10]],
+            [
+                DataObjectEvents::POST_ADD => ['onPostUpdate', 10],
+                DataObjectEvents::POST_UPDATE => ['onPostUpdate', 10],
+            ],
             ProductQualityPostUpdateListener::getSubscribedEvents(),
         );
+    }
+
+    public function testNullChannelFieldSkipsChannelScopesWithoutLoggingAnError(): void
+    {
+        $rule = new FakeQualityRule(id: 1, targetKey: null);
+        $checker = new FakeRuleChecker(static fn (): bool => true, ['1' => true]);
+
+        $resolver = $this->createStub(QualityConfigurationResolver::class);
+        $resolver->method('loadActiveRules')->willReturn([$rule]);
+        $resolver->method('filter')->willReturn([$rule]);
+
+        $keyResolver = $this->createStub(ClassificationStoreKeyResolverInterface::class);
+        $keyResolver->method('listActiveKeys')->willReturn([]);
+
+        $evaluationService = new QualityEvaluationService([$checker], $resolver, $keyResolver, 1);
+
+        $stateRepository = $this->createMock(QualityScoreStateRepositoryInterface::class);
+        $stateRepository->method('getPreviousState')->willReturn(null);
+        $stateRepository->expects(self::once())
+            ->method('upsertState')
+            ->with(self::PRODUCT_ID, 'category', self::SCOPE_ID, true, 100.0);
+
+        $eventDispatcher = $this->createStub(EventDispatcherInterface::class);
+        $eventDispatcher->method('dispatch')->willReturnArgument(0);
+
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::never())->method('error');
+
+        $listener = new ProductQualityPostUpdateListener(
+            $evaluationService,
+            $resolver,
+            $stateRepository,
+            $eventDispatcher,
+            $logger,
+            null,
+            'categories',
+        );
+
+        $channel = new FakeCoreFieldObject();
+        $channel->setId(self::SCOPE_ID + 1);
+        $category = new FakeCoreFieldObject();
+        $category->setId(self::SCOPE_ID);
+
+        $product = new FakeProduct();
+        $product->setId(self::PRODUCT_ID);
+        $product->setKey('test-product');
+        $product->setFakeChannels([$channel]);
+        $product->setFakeCategories([$category]);
+
+        $listener->onPostUpdate(new DataObjectEvent($product));
     }
 
     public function testNonProductObjectIsIgnored(): void

@@ -21,7 +21,7 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 /**
  * Re-evaluates a Product's quality score against every Channel/Category it is assigned to, on every
  * real save (not workflow transitions — this fires on every persist, see
- * \Pimcore\Event\DataObjectEvents::POST_UPDATE). Never calls ->save() on any DataObject: this runs
+ * \Pimcore\Event\DataObjectEvents::POST_ADD and ::POST_UPDATE). Never calls ->save() on any DataObject: this runs
  * inside the save transaction of the very object that triggered it.
  */
 final class ProductQualityPostUpdateListener implements EventSubscriberInterface
@@ -35,7 +35,7 @@ final class ProductQualityPostUpdateListener implements EventSubscriberInterface
         private readonly EventDispatcherInterface $eventDispatcher,
         private readonly LoggerInterface $logger,
         #[Autowire('%portadesign_data_quality.channel_relation_field_name%')]
-        private readonly string $channelRelationFieldName,
+        private readonly ?string $channelRelationFieldName,
         #[Autowire('%portadesign_data_quality.category_relation_field_name%')]
         private readonly string $categoryRelationFieldName,
     ) {
@@ -44,6 +44,7 @@ final class ProductQualityPostUpdateListener implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
+            DataObjectEvents::POST_ADD => ['onPostUpdate', 10],
             DataObjectEvents::POST_UPDATE => ['onPostUpdate', 10],
         ];
     }
@@ -90,8 +91,12 @@ final class ProductQualityPostUpdateListener implements EventSubscriberInterface
     /**
      * @return list<Concrete>
      */
-    private function getRelations(Product $product, string $fieldName): array
+    private function getRelations(Product $product, ?string $fieldName): array
     {
+        if ($fieldName === null || $fieldName === '') {
+            return [];
+        }
+
         $getter = 'get' . \ucfirst($fieldName);
 
         if (! \method_exists($product, $getter)) {

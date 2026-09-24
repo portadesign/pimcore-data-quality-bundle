@@ -23,7 +23,7 @@ class Configuration implements ConfigurationInterface
             ->end()
             ->scalarNode('channel_relation_field_name')
                 ->defaultValue('channels')
-                ->info('Field key expected on target DataObject classes: the relation field holding the object\'s Channel(s).')
+                ->info('Field key expected on target DataObject classes: the relation field holding the object\'s Channel(s). Set to null when the host has no channels, which disables channel scopes.')
             ->end()
             ->scalarNode('category_relation_field_name')
                 ->defaultValue('categories')

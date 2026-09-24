@@ -36,7 +36,7 @@ class QualityReportController extends AbstractController
         private readonly QualityConfigurationResolver $resolver,
         private readonly LoggerInterface $logger,
         #[Autowire('%portadesign_data_quality.channel_relation_field_name%')]
-        private readonly string $channelRelationFieldName,
+        private readonly ?string $channelRelationFieldName,
         #[Autowire('%portadesign_data_quality.category_relation_field_name%')]
         private readonly string $categoryRelationFieldName,
         private readonly QualityGateEvaluator $gateEvaluator,
@@ -183,8 +183,12 @@ class QualityReportController extends AbstractController
     /**
      * @return list<Concrete>
      */
-    private function getRelations(Product $product, string $fieldName): array
+    private function getRelations(Product $product, ?string $fieldName): array
     {
+        if ($fieldName === null || $fieldName === '') {
+            return [];
+        }
+
         $getter = 'get' . \ucfirst($fieldName);
 
         if (! \method_exists($product, $getter)) {
