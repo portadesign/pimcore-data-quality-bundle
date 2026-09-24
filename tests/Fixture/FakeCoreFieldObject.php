@@ -20,6 +20,8 @@ final class FakeCoreFieldObject extends Concrete
 
     private array $tags = [];
 
+    private mixed $gallery = null;
+
     /**
      * Stand-in for a localizedfields-backed getter (e.g. Product::getName()): Pimcore's codegen
      * gives these an optional `?string $language = null` parameter, which is what
@@ -70,6 +72,16 @@ final class FakeCoreFieldObject extends Concrete
     public function getActive(): ?bool
     {
         return $this->active;
+    }
+
+    public function setGallery(mixed $gallery): void
+    {
+        $this->gallery = $gallery;
+    }
+
+    public function getGallery(): mixed
+    {
+        return $this->gallery;
     }
 
     public function setTags(array $tags): void

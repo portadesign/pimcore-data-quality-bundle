@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Portadesign\DataQualityBundle\Tests\RuleChecker;
 
+use Pimcore\Model\Asset\Image;
+use Pimcore\Model\DataObject\Data\Hotspotimage;
+use Pimcore\Model\DataObject\Data\ImageGallery;
 use PHPUnit\Framework\TestCase;
 use Portadesign\DataQualityBundle\Exception\RuleConfigurationException;
 use Portadesign\DataQualityBundle\RuleChecker\FieldPresenceChecker;
@@ -59,6 +62,38 @@ final class FieldPresenceCheckerTest extends TestCase
         $object->setTags([]);
 
         self::assertFalse($this->checker->check($object, new FakeQualityRule(targetKey: 'tags')));
+    }
+
+    public function testEmptyImageGalleryDoesNotSatisfyTheRule(): void
+    {
+        $object = new FakeCoreFieldObject();
+        $object->setGallery(new ImageGallery([]));
+
+        self::assertFalse($this->checker->check($object, new FakeQualityRule(targetKey: 'gallery')));
+    }
+
+    public function testImageGalleryWithOnlyImagelessItemsDoesNotSatisfyTheRule(): void
+    {
+        $object = new FakeCoreFieldObject();
+        $object->setGallery(new ImageGallery([new Hotspotimage()]));
+
+        self::assertFalse($this->checker->check($object, new FakeQualityRule(targetKey: 'gallery')));
+    }
+
+    public function testImageGalleryWithAnImageSatisfiesTheRule(): void
+    {
+        $object = new FakeCoreFieldObject();
+        $object->setGallery(new ImageGallery([new Hotspotimage(), new Hotspotimage(new Image())]));
+
+        self::assertTrue($this->checker->check($object, new FakeQualityRule(targetKey: 'gallery')));
+    }
+
+    public function testHotspotImageWithoutAnImageDoesNotSatisfyTheRule(): void
+    {
+        $object = new FakeCoreFieldObject();
+        $object->setGallery(new Hotspotimage());
+
+        self::assertFalse($this->checker->check($object, new FakeQualityRule(targetKey: 'gallery')));
     }
 
     public function testZeroValueSatisfiesTheRule(): void

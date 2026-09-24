@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Portadesign\DataQualityBundle\RuleChecker;
 
+use Pimcore\Model\DataObject\Data\Hotspotimage;
+use Pimcore\Model\DataObject\Data\ImageGallery;
+
 trait PresenceCheckTrait
 {
     /**
@@ -21,6 +24,22 @@ trait PresenceCheckTrait
         }
 
         if ($value === []) {
+            return false;
+        }
+
+        // An image field/gallery getter returns a wrapper object even when no image is set, so
+        // the wrapper itself says nothing about presence — its image(s) do.
+        if ($value instanceof Hotspotimage) {
+            return $value->getImage() !== null;
+        }
+
+        if ($value instanceof ImageGallery) {
+            foreach ($value->getItems() as $item) {
+                if ($item instanceof Hotspotimage && $item->getImage() !== null) {
+                    return true;
+                }
+            }
+
             return false;
         }
 
