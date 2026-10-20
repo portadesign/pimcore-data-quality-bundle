@@ -49,6 +49,8 @@ final class RuleProblemTranslator
             return $fallback;
         }
 
-        return $this->translator->trans($key, $parameters, 'studio', $this->userResolver?->getUser()?->getLanguage());
+        $translated = $this->translator->trans($key, $parameters, 'studio', $this->userResolver?->getUser()?->getLanguage());
+
+        return $translated === $key ? $fallback : $translated;
     }
 }

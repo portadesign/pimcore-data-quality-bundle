@@ -30,4 +30,16 @@ final class RuleProblemTranslatorTest extends TestCase
 
         self::assertSame('12 / 5 znaků (cs)', (new RuleProblemTranslator($symfonyTranslator))->tooLong(12, 5, 'cs'));
     }
+
+    public function testReturnsTheFallbackWhenTheKeyHasNoTranslation(): void
+    {
+        $symfonyTranslator = $this->createStub(TranslatorInterface::class);
+        $symfonyTranslator->method('trans')->willReturnArgument(0);
+
+        $translator = new RuleProblemTranslator($symfonyTranslator);
+
+        self::assertSame('missing (cs)', $translator->missing('cs'));
+        self::assertSame('1 / 0 characters', $translator->tooLong(1, 0));
+        self::assertSame('custom fallback', $translator->translate('channel_content.unknown', 'custom fallback'));
+    }
 }
