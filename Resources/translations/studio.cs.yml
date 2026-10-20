@@ -5,6 +5,10 @@ user-management:
 'Data Quality Configuration': 'Konfigurace kvality dat'
 'Target Class': 'Cílová třída'
 'The Pimcore DataObject class this configuration''s rules are evaluated against, e.g. "Product".': 'Třída DataObject, vůči které se vyhodnocují pravidla této konfigurace, např. „Product“.'
+'Scope': 'Rozsah'
+'Optional. Scopes every rule in this configuration to the listed DataObjects (e.g. one Category and one Channel), in addition to each rule''s own Dependent Objects. A configuration with a scope is a quality profile: its readiness is reported separately, for products linked to ALL scope objects.': 'Volitelné. Omezí všechna pravidla této konfigurace na uvedené DataObjects (např. jednu kategorii a jeden kanál) navíc k závislým objektům každého pravidla. Konfigurace s rozsahem je profil kvality: její připravenost se vykazuje zvlášť, pro produkty propojené se VŠEMI objekty rozsahu.'
+'Required Attribute Groups': 'Požadované skupiny atributů'
+'Profile only. Classification Store groups activated on products this profile applies to, in addition to the category''s own groups. Groups are never deactivated automatically, so stored values survive the product leaving the scope.': 'Jen profil. Skupiny Classification Store aktivované u produktů, na které se profil vztahuje, navíc ke skupinám samotné kategorie. Skupiny se nikdy automaticky nedeaktivují, takže uložené hodnoty zůstanou, i když produkt rozsah opustí.'
 'Rules': 'Pravidla'
 'Individual quality rules evaluated for this class.': 'Jednotlivá pravidla kvality vyhodnocovaná pro tuto třídu.'
 'Data Quality Rule': 'Pravidlo kvality dat'
@@ -77,6 +81,11 @@ portadesign_data_quality:
         max_length: 'max %length% znaků'
         inactive: '[neaktivní]'
         no_target_key: '(bez cílového klíče)'
+    problem:
+        missing: 'chybí'
+        missing_in: 'chybí (%language%)'
+        too_long: '%length% / %max% znaků'
+        too_long_in: '%length% / %max% znaků (%language%)'
     option:
         field: 'Pole: %label%'
         cs_key: 'Klíč CS: %label%'

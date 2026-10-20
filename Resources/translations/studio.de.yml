@@ -5,6 +5,10 @@ user-management:
 'Data Quality Configuration': 'Datenqualitätskonfiguration'
 'Target Class': 'Zielklasse'
 'The Pimcore DataObject class this configuration''s rules are evaluated against, e.g. "Product".': 'Die Pimcore-DataObject-Klasse, gegen die die Regeln dieser Konfiguration ausgewertet werden, z. B. „Product“.'
+'Scope': 'Geltungsbereich'
+'Optional. Scopes every rule in this configuration to the listed DataObjects (e.g. one Category and one Channel), in addition to each rule''s own Dependent Objects. A configuration with a scope is a quality profile: its readiness is reported separately, for products linked to ALL scope objects.': 'Optional. Beschränkt alle Regeln dieser Konfiguration auf die aufgeführten DataObjects (z. B. eine Kategorie und einen Kanal), zusätzlich zu den abhängigen Objekten jeder Regel. Eine Konfiguration mit Geltungsbereich ist ein Qualitätsprofil: Ihre Bereitschaft wird separat gemeldet, für Produkte, die mit ALLEN Objekten des Geltungsbereichs verknüpft sind.'
+'Required Attribute Groups': 'Erforderliche Attributgruppen'
+'Profile only. Classification Store groups activated on products this profile applies to, in addition to the category''s own groups. Groups are never deactivated automatically, so stored values survive the product leaving the scope.': 'Nur Profil. Classification-Store-Gruppen, die bei Produkten aktiviert werden, für die dieses Profil gilt, zusätzlich zu den Gruppen der Kategorie. Gruppen werden nie automatisch deaktiviert, gespeicherte Werte bleiben also erhalten, wenn das Produkt den Geltungsbereich verlässt.'
 'Rules': 'Regeln'
 'Individual quality rules evaluated for this class.': 'Einzelne Qualitätsregeln, die für diese Klasse ausgewertet werden.'
 'Data Quality Rule': 'Datenqualitätsregel'
@@ -77,6 +81,11 @@ portadesign_data_quality:
         max_length: 'max. %length% Zeichen'
         inactive: '[inaktiv]'
         no_target_key: '(kein Zielschlüssel)'
+    problem:
+        missing: 'fehlt'
+        missing_in: 'fehlt (%language%)'
+        too_long: '%length% / %max% Zeichen'
+        too_long_in: '%length% / %max% Zeichen (%language%)'
     option:
         field: 'Feld: %label%'
         cs_key: 'CS-Schlüssel: %label%'

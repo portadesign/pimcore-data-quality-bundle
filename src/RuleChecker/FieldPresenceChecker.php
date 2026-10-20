@@ -9,6 +9,7 @@ use Portadesign\DataQualityBundle\Contract\QualityConfigurationInterface;
 use Portadesign\DataQualityBundle\Contract\ExplainingRuleCheckerInterface;
 use Portadesign\DataQualityBundle\Contract\ValidLanguageProviderInterface;
 use Portadesign\DataQualityBundle\Exception\RuleConfigurationException;
+use Portadesign\DataQualityBundle\Service\RuleProblemTranslator;
 use Portadesign\DataQualityBundle\Support\RuleConstraints;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 
@@ -21,6 +22,7 @@ final class FieldPresenceChecker implements ExplainingRuleCheckerInterface
 
     public function __construct(
         private readonly ValidLanguageProviderInterface $languageProvider,
+        private readonly RuleProblemTranslator $problems = new RuleProblemTranslator(),
     ) {
     }
 
@@ -79,14 +81,14 @@ final class FieldPresenceChecker implements ExplainingRuleCheckerInterface
         $maxLength = RuleConstraints::maxLength($rule);
 
         foreach ($values as $language => $value) {
-            $suffix = $language !== '' ? ' (' . $language . ')' : '';
+            $languageCode = $language !== '' ? (string) $language : null;
 
             if (! $this->isPresent($value)) {
-                return 'missing' . $suffix;
+                return $this->problems->missing($languageCode);
             }
 
             if ($maxLength !== null && \is_string($value) && ($length = RuleConstraints::textLength($value)) > $maxLength) {
-                return \sprintf('%s / %s characters%s', \number_format($length), \number_format($maxLength), $suffix);
+                return $this->problems->tooLong($length, $maxLength, $languageCode);
             }
         }
 

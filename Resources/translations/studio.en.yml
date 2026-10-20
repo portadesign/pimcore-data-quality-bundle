@@ -5,6 +5,10 @@ user-management:
 'Data Quality Configuration': 'Data Quality Configuration'
 'Target Class': 'Target Class'
 'The Pimcore DataObject class this configuration''s rules are evaluated against, e.g. "Product".': 'The Pimcore DataObject class this configuration''s rules are evaluated against, e.g. "Product".'
+'Scope': 'Scope'
+'Optional. Scopes every rule in this configuration to the listed DataObjects (e.g. one Category and one Channel), in addition to each rule''s own Dependent Objects. A configuration with a scope is a quality profile: its readiness is reported separately, for products linked to ALL scope objects.': 'Optional. Scopes every rule in this configuration to the listed DataObjects (e.g. one Category and one Channel), in addition to each rule''s own Dependent Objects. A configuration with a scope is a quality profile: its readiness is reported separately, for products linked to ALL scope objects.'
+'Required Attribute Groups': 'Required Attribute Groups'
+'Profile only. Classification Store groups activated on products this profile applies to, in addition to the category''s own groups. Groups are never deactivated automatically, so stored values survive the product leaving the scope.': 'Profile only. Classification Store groups activated on products this profile applies to, in addition to the category''s own groups. Groups are never deactivated automatically, so stored values survive the product leaving the scope.'
 'Rules': 'Rules'
 'Individual quality rules evaluated for this class.': 'Individual quality rules evaluated for this class.'
 'Data Quality Rule': 'Data Quality Rule'
@@ -77,6 +81,11 @@ portadesign_data_quality:
         max_length: 'max %length% chars'
         inactive: '[inactive]'
         no_target_key: '(no target key)'
+    problem:
+        missing: 'missing'
+        missing_in: 'missing (%language%)'
+        too_long: '%length% / %max% characters'
+        too_long_in: '%length% / %max% characters (%language%)'
     option:
         field: 'Field: %label%'
         cs_key: 'CS Key: %label%'

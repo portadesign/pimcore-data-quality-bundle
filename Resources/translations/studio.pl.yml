@@ -5,6 +5,10 @@ user-management:
 'Data Quality Configuration': 'Konfiguracja jakości danych'
 'Target Class': 'Klasa docelowa'
 'The Pimcore DataObject class this configuration''s rules are evaluated against, e.g. "Product".': 'Klasa DataObject, względem której oceniane są reguły tej konfiguracji, np. „Product”.'
+'Scope': 'Zakres'
+'Optional. Scopes every rule in this configuration to the listed DataObjects (e.g. one Category and one Channel), in addition to each rule''s own Dependent Objects. A configuration with a scope is a quality profile: its readiness is reported separately, for products linked to ALL scope objects.': 'Opcjonalne. Ogranicza wszystkie reguły tej konfiguracji do wymienionych DataObjects (np. jednej kategorii i jednego kanału), oprócz obiektów zależnych każdej reguły. Konfiguracja z zakresem to profil jakości: jego gotowość jest raportowana osobno, dla produktów powiązanych ze WSZYSTKIMI obiektami zakresu.'
+'Required Attribute Groups': 'Wymagane grupy atrybutów'
+'Profile only. Classification Store groups activated on products this profile applies to, in addition to the category''s own groups. Groups are never deactivated automatically, so stored values survive the product leaving the scope.': 'Tylko profil. Grupy Classification Store aktywowane w produktach, których dotyczy ten profil, oprócz grup samej kategorii. Grupy nigdy nie są dezaktywowane automatycznie, więc zapisane wartości zostają, gdy produkt opuści zakres.'
 'Rules': 'Reguły'
 'Individual quality rules evaluated for this class.': 'Poszczególne reguły jakości oceniane dla tej klasy.'
 'Data Quality Rule': 'Reguła jakości danych'
@@ -77,6 +81,11 @@ portadesign_data_quality:
         max_length: 'maks. %length% znaków'
         inactive: '[nieaktywna]'
         no_target_key: '(brak klucza docelowego)'
+    problem:
+        missing: 'brak'
+        missing_in: 'brak (%language%)'
+        too_long: '%length% / %max% znaków'
+        too_long_in: '%length% / %max% znaków (%language%)'
     option:
         field: 'Pole: %label%'
         cs_key: 'Klucz CS: %label%'

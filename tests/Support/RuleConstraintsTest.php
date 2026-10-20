@@ -33,6 +33,16 @@ final class RuleConstraintsTest extends TestCase
         self::assertSame(6, RuleConstraints::textLength('foo<strong>bar</strong>'));
     }
 
+    public function testTextLengthKeepsBareLessThanSignsAndEntitySpaces(): void
+    {
+        self::assertSame(11, RuleConstraints::textLength('ph<7 a více'));
+        self::assertSame(5, RuleConstraints::textLength('5 <10'));
+        self::assertSame(14, RuleConstraints::textLength('teplota <40 °C'));
+        self::assertSame(0, RuleConstraints::textLength('<p>&nbsp;</p>'));
+        self::assertSame(3, RuleConstraints::textLength('a&nbsp;&nbsp;b'));
+        self::assertSame(3, RuleConstraints::textLength('&lt;b&gt;'));
+    }
+
     public function testMaxLengthIsNullForRulesWithoutTheConstraint(): void
     {
         self::assertNull(RuleConstraints::maxLength(new FakeQualityRule()));

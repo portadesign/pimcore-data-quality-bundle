@@ -28,12 +28,13 @@ final class RuleConstraints
 
     /**
      * Length of a value as a reader sees it: HTML tags removed (block and line-break tags count as
-     * whitespace), entities decoded, whitespace runs collapsed, so a WYSIWYG description is measured like the text a channel displays.
+     * whitespace; a bare "<" in prose is text), entities decoded, whitespace runs collapsed, so a WYSIWYG description is measured like the text a channel displays.
      */
     public static function textLength(string $value): int
     {
-        $withBreaks = (string) \preg_replace('/<\/?(?:br|p|div|li|ul|ol|h[1-6]|tr|td|th|table|blockquote|pre|hr|section|article)\b[^>]*>/i', ' ', $value);
-        $text = \html_entity_decode(\strip_tags($withBreaks), \ENT_QUOTES | \ENT_HTML5, 'UTF-8');
+        $withBreaks = (string) \preg_replace('/<\/?(?:br|p|div|li|ul|ol|h[1-6]|tr|td|th|table|blockquote|pre|hr|section|article)(?=[\s\/>])[^>]*>/i', ' ', $value);
+        $withoutTags = (string) \preg_replace('/<\/?[a-zA-Z][^>]*>/', '', $withBreaks);
+        $text = \html_entity_decode($withoutTags, \ENT_QUOTES | \ENT_HTML5, 'UTF-8');
         $text = \trim((string) \preg_replace('/\s+/u', ' ', $text));
 
         return \mb_strlen($text);

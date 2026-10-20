@@ -11,6 +11,7 @@ use Portadesign\DataQualityBundle\Contract\ExplainingRuleCheckerInterface;
 use Portadesign\DataQualityBundle\Contract\QualityConfigurationInterface;
 use Portadesign\DataQualityBundle\Contract\ValidLanguageProviderInterface;
 use Portadesign\DataQualityBundle\Exception\RuleConfigurationException;
+use Portadesign\DataQualityBundle\Service\RuleProblemTranslator;
 use Portadesign\DataQualityBundle\Support\RuleConstraints;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 
@@ -23,6 +24,7 @@ final class ClassificationStoreKeyPresenceChecker implements ExplainingRuleCheck
         private readonly int $classificationStoreId,
         private readonly ClassificationStoreKeyResolverInterface $keyResolver,
         private readonly ValidLanguageProviderInterface $languageProvider,
+        private readonly RuleProblemTranslator $problems = new RuleProblemTranslator(),
     ) {
     }
 
@@ -101,11 +103,11 @@ final class ClassificationStoreKeyPresenceChecker implements ExplainingRuleCheck
             $value = $this->firstPresentValue($store, $keyId, $language);
 
             if ($value === null) {
-                return 'missing (' . $language . ')';
+                return $this->problems->missing($language);
             }
 
             if ($maxLength !== null && \is_string($value) && ($length = RuleConstraints::textLength($value)) > $maxLength) {
-                return \sprintf('%s / %s characters (%s)', \number_format($length), \number_format($maxLength), $language);
+                return $this->problems->tooLong($length, $maxLength, $language);
             }
         }
 

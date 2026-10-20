@@ -5,6 +5,10 @@ user-management:
 'Data Quality Configuration': 'Configuration de la qualité des données'
 'Target Class': 'Classe cible'
 'The Pimcore DataObject class this configuration''s rules are evaluated against, e.g. "Product".': 'La classe DataObject Pimcore sur laquelle les règles de cette configuration sont évaluées, p. ex. « Product ».'
+'Scope': 'Périmètre'
+'Optional. Scopes every rule in this configuration to the listed DataObjects (e.g. one Category and one Channel), in addition to each rule''s own Dependent Objects. A configuration with a scope is a quality profile: its readiness is reported separately, for products linked to ALL scope objects.': 'Facultatif. Limite toutes les règles de cette configuration aux DataObjects listés (p. ex. une catégorie et un canal), en plus des objets dépendants de chaque règle. Une configuration avec périmètre est un profil qualité : sa disponibilité est rapportée séparément, pour les produits liés à TOUS les objets du périmètre.'
+'Required Attribute Groups': 'Groupes d''''attributs requis'
+'Profile only. Classification Store groups activated on products this profile applies to, in addition to the category''s own groups. Groups are never deactivated automatically, so stored values survive the product leaving the scope.': 'Profil uniquement. Groupes Classification Store activés sur les produits auxquels ce profil s''''applique, en plus des groupes de la catégorie. Les groupes ne sont jamais désactivés automatiquement ; les valeurs enregistrées sont donc conservées quand le produit quitte le périmètre.'
 'Rules': 'Règles'
 'Individual quality rules evaluated for this class.': 'Règles de qualité individuelles évaluées pour cette classe.'
 'Data Quality Rule': 'Règle de qualité des données'
@@ -77,6 +81,11 @@ portadesign_data_quality:
         max_length: 'max. %length% caractères'
         inactive: '[inactive]'
         no_target_key: '(aucune clé cible)'
+    problem:
+        missing: 'manquant'
+        missing_in: 'manquant (%language%)'
+        too_long: '%length% / %max% caractères'
+        too_long_in: '%length% / %max% caractères (%language%)'
     option:
         field: 'Champ : %label%'
         cs_key: 'Clé CS : %label%'
