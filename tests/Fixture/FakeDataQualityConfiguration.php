@@ -16,6 +16,19 @@ final class FakeDataQualityConfiguration extends DataQualityConfiguration
 {
     private ?Fieldcollection $fakeRules = null;
 
+    /**
+     * @var list<\Pimcore\Model\DataObject\Concrete>
+     */
+    private array $fakeScopeObjects = [];
+
+    /**
+     * @param list<\Pimcore\Model\DataObject\Concrete> $scopeObjects
+     */
+    public function setFakeScopeObjects(array $scopeObjects): void
+    {
+        $this->fakeScopeObjects = $scopeObjects;
+    }
+
     public function setFakeRules(?Fieldcollection $rules): void
     {
         $this->fakeRules = $rules;
@@ -31,6 +44,6 @@ final class FakeDataQualityConfiguration extends DataQualityConfiguration
      */
     public function getScopeObjects(): array
     {
-        return [];
+        return $this->fakeScopeObjects;
     }
 }

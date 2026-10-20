@@ -89,10 +89,33 @@ final class DataQualityRuleDescriptionListenerTest extends TestCase
         );
     }
 
+    public function testRuleOfAScopedConfigurationNamesTheConfigurationsScopeObjects(): void
+    {
+        $category = $this->makeNamedObject('Category', 'sprchove-kouty', 'Sprchové kouty');
+        $category->setId(10);
+        $channel = $this->makeNamedObject('Channel', 'siko-cz', 'siko.cz');
+        $channel->setId(20);
+        $rule = new FakeMutableQualityRule(dependentObjects: [], requirementLevel: 'mandatory', weight: 1.0);
+
+        $this->runListener([$rule], [$category, $channel]);
+
+        self::assertSame('Category: Sprchové kouty + Channel: siko.cz / (no target key) / Mandatory / Weight 1', $rule->getDescription());
+    }
+
+    public function testRuleWithMaxLengthAppendsItAfterTheWeight(): void
+    {
+        $rule = new FakeMutableQualityRule(requirementLevel: 'mandatory', weight: 3.0, maxLength: 160);
+
+        $this->runListener([$rule]);
+
+        self::assertSame('Global / (no target key) / Mandatory / Weight 3 / max 160 chars', $rule->getDescription());
+    }
+
     /**
-     * @param list<FakeMutableQualityRule> $rules
+     * @param list<FakeMutableQualityRule>                $rules
+     * @param list<\Pimcore\Model\DataObject\Concrete> $scopeObjects
      */
-    private function runListener(array $rules): void
+    private function runListener(array $rules, array $scopeObjects = []): void
     {
         $keyResolver = $this->createStub(ClassificationStoreKeyResolverInterface::class);
         $keyResolver->method('listActiveKeys')->willReturn([]);
@@ -110,6 +133,7 @@ final class DataQualityRuleDescriptionListenerTest extends TestCase
 
         $subject = new FakeDataQualityConfiguration();
         $subject->setFakeRules(new Fieldcollection($rules));
+        $subject->setFakeScopeObjects($scopeObjects);
 
         $listener->onPreSave(new DataObjectEvent($subject));
     }

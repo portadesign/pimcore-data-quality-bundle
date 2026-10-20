@@ -28,6 +28,7 @@ final class FakeMutableQualityRule implements QualityConfigurationInterface
         private readonly ?string $requirementLevel = 'mandatory',
         private readonly ?float $weight = 1.0,
         private readonly ?bool $active = true,
+        private readonly ?int $maxLength = null,
     ) {
     }
 
@@ -39,6 +40,11 @@ final class FakeMutableQualityRule implements QualityConfigurationInterface
     public function getDescription(): ?string
     {
         return $this->description;
+    }
+
+    public function getMaxLength(): ?int
+    {
+        return $this->maxLength;
     }
 
     public function setDescription(?string $description): void
