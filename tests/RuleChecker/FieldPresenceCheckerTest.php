@@ -11,6 +11,7 @@ use PHPUnit\Framework\TestCase;
 use Portadesign\DataQualityBundle\Exception\RuleConfigurationException;
 use Portadesign\DataQualityBundle\RuleChecker\FieldPresenceChecker;
 use Portadesign\DataQualityBundle\Tests\Fixture\FakeCoreFieldObject;
+use Portadesign\DataQualityBundle\Tests\Fixture\FakeMaxLengthRule;
 use Portadesign\DataQualityBundle\Tests\Fixture\FakeQualityRule;
 use Portadesign\DataQualityBundle\Tests\Fixture\FakeValidLanguageProvider;
 
@@ -166,5 +167,41 @@ final class FieldPresenceCheckerTest extends TestCase
         // iterating $languages for it would be both wrong (it doesn't vary by language) and
         // wasteful.
         self::assertTrue($checker->check($object, new FakeQualityRule(targetKey: 'ean')));
+    }
+
+    public function testLocalizedFieldOverTheLimitInOneLanguageFailsAndNamesThatLanguage(): void
+    {
+        $object = new FakeCoreFieldObject();
+        $object->setTitle(['en' => 'Short', 'cs' => '<p>Tohle je příliš dlouhý text</p>']);
+        $rule = new FakeMaxLengthRule('title', 10);
+
+        self::assertFalse($this->checker->check($object, $rule));
+        self::assertSame('27 / 10 characters (cs)', $this->checker->explain($object, $rule));
+    }
+
+    public function testLocalizedFieldWithinTheLimitInEveryLanguageSatisfiesTheRule(): void
+    {
+        $object = new FakeCoreFieldObject();
+        $object->setTitle(['en' => '1234567890', 'cs' => '<b>12345</b>']);
+        $rule = new FakeMaxLengthRule('title', 10);
+
+        self::assertTrue($this->checker->check($object, $rule));
+        self::assertNull($this->checker->explain($object, $rule));
+    }
+
+    public function testExplainNamesTheLanguageMissingTheValue(): void
+    {
+        $object = new FakeCoreFieldObject();
+        $object->setTitle(['cs' => 'Ahoj']);
+
+        self::assertSame('missing (en)', $this->checker->explain($object, new FakeQualityRule(targetKey: 'title')));
+    }
+
+    public function testLimitIsNotAppliedToNonTextValues(): void
+    {
+        $object = new FakeCoreFieldObject();
+        $object->setStock(123456789);
+
+        self::assertTrue($this->checker->check($object, new FakeMaxLengthRule('stock', 3)));
     }
 }

@@ -17,6 +17,8 @@ use Portadesign\DataQualityBundle\Tests\Fixture\FakeCoreFieldObject;
 use Portadesign\DataQualityBundle\Tests\Fixture\FakeNamedScopeObject;
 use Portadesign\DataQualityBundle\Tests\Fixture\FakeQualityRule;
 use Portadesign\DataQualityBundle\Tests\Fixture\FakeRuleChecker;
+use Psr\Log\AbstractLogger;
+use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
 final class ProfileReadinessServiceTest extends TestCase
@@ -115,6 +117,46 @@ final class ProfileReadinessServiceTest extends TestCase
         self::assertSame(ProfileReadiness::STATUS_AMBIGUOUS, $readiness->status);
     }
 
+    public function testProfileScopedBeyondTheCombinationOrToAnotherChannelDoesNotConfigureIt(): void
+    {
+        $brand = $this->scopeObject(30, 'Brand');
+        $profiles = [
+            $this->profile(1, [$this->showerEnclosures, $this->siko, $brand]),
+            $this->profile(2, [$this->showerEnclosures, $this->leroyMerlin]),
+        ];
+
+        $readiness = $this->service([])->evaluatePair(new FakeCoreFieldObject(), $this->showerEnclosures, $this->siko, [], $profiles);
+
+        self::assertSame(ProfileReadiness::STATUS_NOT_CONFIGURED, $readiness->status);
+        self::assertNull($readiness->profileId);
+        self::assertNull($readiness->profileName);
+    }
+
+    public function testFailingEvaluationIsReportedAsErrorForTheProfileAndLogged(): void
+    {
+        $profile = $this->profile(4, [$this->showerEnclosures, $this->siko], ['sikoOnly']);
+        $rules = [new ScopedQualityRule(new FakeQualityRule(id: 'sikoOnly'), $profile->scopeObjects)];
+        $logger = new class extends AbstractLogger {
+            /** @var list<string> */
+            public array $errors = [];
+
+            public function log($level, string|\Stringable $message, array $context = []): void
+            {
+                if ($level === 'error') {
+                    $this->errors[] = (string) $message;
+                }
+            }
+        };
+
+        $readiness = $this->service([], $logger, checkerSupportsRules: false)->evaluatePair(new FakeCoreFieldObject(), $this->showerEnclosures, $this->siko, $rules, [$profile]);
+
+        self::assertSame(ProfileReadiness::STATUS_ERROR, $readiness->status);
+        self::assertSame(4, $readiness->profileId);
+        self::assertNull($readiness->result);
+        self::assertFalse($readiness->isReady());
+        self::assertCount(1, $logger->errors);
+    }
+
     public function testScopedRuleMergesConfigurationScopeWithOwnDependents(): void
     {
         $rule = new ScopedQualityRule(
@@ -129,19 +171,19 @@ final class ProfileReadinessServiceTest extends TestCase
     /**
      * @param array<string, bool> $resultsByRuleId
      */
-    private function service(array $resultsByRuleId): ProfileReadinessService
+    private function service(array $resultsByRuleId, ?LoggerInterface $logger = null, bool $checkerSupportsRules = true): ProfileReadinessService
     {
         $keyResolver = $this->createStub(ClassificationStoreKeyResolverInterface::class);
         $keyResolver->method('listActiveKeys')->willReturn([]);
 
         $evaluationService = new QualityEvaluationService(
-            [new FakeRuleChecker(static fn (): bool => true, $resultsByRuleId)],
+            [new FakeRuleChecker(static fn (): bool => $checkerSupportsRules, $resultsByRuleId)],
             new QualityConfigurationResolver(),
             $keyResolver,
             1,
         );
 
-        return new ProfileReadinessService($evaluationService, new NullLogger());
+        return new ProfileReadinessService($evaluationService, $logger ?? new NullLogger());
     }
 
     /**
