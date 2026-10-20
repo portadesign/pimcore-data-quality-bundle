@@ -39,7 +39,7 @@ class QualityProfileResolver
                 name: (string) $configuration->getKey(),
                 scopeObjects: $scopeObjects,
                 classificationStoreGroupIds: self::groupIdsOf($configuration),
-                mandatoryRuleIds: self::mandatoryRuleIdsOf($configuration),
+                mandatoryRuleIds: self::mandatoryRuleIdsOf($configuration->getRules() ?? []),
             );
         }
 
@@ -102,14 +102,16 @@ class QualityProfileResolver
     }
 
     /**
+     * @param iterable<mixed> $rules
+     *
      * @return list<string>
      */
-    private static function mandatoryRuleIdsOf(DataQualityConfiguration $configuration): array
+    public static function mandatoryRuleIdsOf(iterable $rules): array
     {
         $ids = [];
 
-        foreach ($configuration->getRules() ?? [] as $rule) {
-            if ($rule instanceof QualityConfigurationInterface && $rule->getActive() === true && $rule->getRequirementLevel() === 'mandatory') {
+        foreach ($rules as $rule) {
+            if ($rule instanceof QualityConfigurationInterface && $rule->getActive() === true && $rule->getRequirementLevel() === 'mandatory' && (float) $rule->getWeight() > 0.0) {
                 $ids[] = (string) $rule->getId();
             }
         }

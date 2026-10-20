@@ -25,6 +25,14 @@ final class RuleConstraintsTest extends TestCase
         self::assertSame(13, RuleConstraints::textLength("<p>Sprchov&yacute;</p>\n\n<p>  kout</p>"));
     }
 
+    public function testTextLengthTreatsBlockAndLineBreakTagsAsWhitespaceButNotInlineTags(): void
+    {
+        self::assertSame(7, RuleConstraints::textLength('<p>foo</p><p>bar</p>'));
+        self::assertSame(7, RuleConstraints::textLength('foo<br>bar'));
+        self::assertSame(7, RuleConstraints::textLength('<ul><li>foo</li><li>bar</li></ul>'));
+        self::assertSame(6, RuleConstraints::textLength('foo<strong>bar</strong>'));
+    }
+
     public function testMaxLengthIsNullForRulesWithoutTheConstraint(): void
     {
         self::assertNull(RuleConstraints::maxLength(new FakeQualityRule()));
