@@ -22,7 +22,7 @@
     "globalName": "portadesign_data_quality_bundle",
     "pluginVersion": "0.13.1",
     "prefetchInterface": false,
-    "publicPath": "/bundles/portadesigndataquality/build/f6a6db0e-2b20-4fb4-96be-e7ac325fb130/"
+    "publicPath": "/bundles/portadesigndataquality/build/b98b93ce-506a-458d-9804-9bacf7295d57/"
   },
   "shared": [
     {
@@ -35,7 +35,7 @@
         "js": {
           "async": [],
           "sync": [
-            "static/js/async/331.299fff9c.js"
+            "static/js/async/331.ad99ed34.js"
           ]
         },
         "css": {
@@ -54,7 +54,7 @@
         "js": {
           "async": [],
           "sync": [
-            "static/js/109.a568a5a0.js",
+            "static/js/109.d8a01d90.js",
             "static/js/remoteEntry.js"
           ]
         },
@@ -74,7 +74,7 @@
         "js": {
           "async": [],
           "sync": [
-            "static/js/async/379.85ba46c5.js"
+            "static/js/async/379.81da5614.js"
           ]
         },
         "css": {
@@ -93,7 +93,7 @@
         "js": {
           "async": [],
           "sync": [
-            "static/js/109.a568a5a0.js",
+            "static/js/109.d8a01d90.js",
             "static/js/remoteEntry.js"
           ]
         },
@@ -143,7 +143,7 @@
       "assets": {
         "js": {
           "sync": [
-            "static/js/async/__federation_expose_default_export.89140d90.js"
+            "static/js/async/__federation_expose_default_export.0d88568c.js"
           ],
           "async": []
         },

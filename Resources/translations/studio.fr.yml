@@ -20,6 +20,8 @@ user-management:
 'Recommended': 'Recommandée'
 'Optional': 'Facultative'
 'Weight': 'Poids'
+'Maximum Length': 'Longueur maximale'
+'Optional. Maximum number of characters, counted on the plain text (HTML tags removed). Empty = no limit. Applies to text targets.': 'Facultatif. Nombre maximal de caractères, compté sur le texte brut (sans balises HTML). Vide = aucune limite. S''applique aux cibles textuelles.'
 'Relative weight of this rule within the mandatory-rule score calculation.': 'Poids relatif de cette règle dans le calcul du score des règles obligatoires.'
 'Active': 'Actif'
 'Inactive rules are ignored during evaluation.': 'Les règles inactives sont ignorées lors de l’évaluation.'
@@ -38,6 +40,9 @@ portadesign_data_quality:
         overall: 'Global'
         by_channel: 'Par canal'
         by_category: 'Par catégorie'
+        by_profile: 'Par catégorie × canal'
+        no_profile: 'Aucun profil qualité n''est configuré pour cette catégorie et ce canal.'
+        profile_without_mandatory: 'Le profil « {{name}} » n''a aucune exigence obligatoire ; la disponibilité ne peut pas être déterminée.'
         mandatory_rules: 'Règles obligatoires'
         complete: 'Satisfait'
         incomplete: 'Non satisfait'
@@ -47,6 +52,12 @@ portadesign_data_quality:
         no_object: 'Aucun objet sélectionné'
         no_report: 'Aucun rapport de qualité disponible'
         no_scopes: 'Ce produit n’est affecté à aucun canal ni à aucune catégorie'
+    profile_status:
+        ready: 'Prêt'
+        incomplete: 'Incomplet'
+        not_configured: 'Non configuré'
+        ambiguous: 'Plusieurs profils'
+        error: 'Erreur d''évaluation'
     gates:
         title: 'Verrous de workflow :'
     workflow:
@@ -60,6 +71,7 @@ portadesign_data_quality:
     description:
         global: 'Global'
         weight: 'Poids %weight%'
+        max_length: 'max. %length% caractères'
         inactive: '[inactive]'
         no_target_key: '(aucune clé cible)'
     option:

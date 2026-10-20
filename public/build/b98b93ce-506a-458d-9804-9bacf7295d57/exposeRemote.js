@@ -7,7 +7,7 @@
         window.alternativePluginExportPaths = {}
       }
 
-      window.pluginRemotes.portadesign_data_quality_bundle = "/bundles/portadesigndataquality/build/f6a6db0e-2b20-4fb4-96be-e7ac325fb130/static/js/remoteEntry.js"
+      window.pluginRemotes.portadesign_data_quality_bundle = "/bundles/portadesigndataquality/build/b98b93ce-506a-458d-9804-9bacf7295d57/static/js/remoteEntry.js"
 
       
     

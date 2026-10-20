@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Portadesign\DataQualityBundle\DependencyInjection;
 
+use Portadesign\DataQualityBundle\Contract\TargetKeyOptionsContributorInterface;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
@@ -27,5 +28,9 @@ class PortadesignDataQualityExtension extends Extension
         );
 
         $loader->load('services.yaml');
+
+        // Host applications contribute extra rule targets just by implementing the interface.
+        $container->registerForAutoconfiguration(TargetKeyOptionsContributorInterface::class)
+            ->addTag('quality.target_key_options');
     }
 }

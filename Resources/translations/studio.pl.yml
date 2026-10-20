@@ -20,6 +20,8 @@ user-management:
 'Recommended': 'Zalecana'
 'Optional': 'Opcjonalna'
 'Weight': 'Waga'
+'Maximum Length': 'Maksymalna długość'
+'Optional. Maximum number of characters, counted on the plain text (HTML tags removed). Empty = no limit. Applies to text targets.': 'Opcjonalne. Maksymalna liczba znaków liczona w czystym tekście (bez znaczników HTML). Puste = bez limitu. Dotyczy pól tekstowych.'
 'Relative weight of this rule within the mandatory-rule score calculation.': 'Względna waga tej reguły w obliczaniu wyniku z reguł obowiązkowych.'
 'Active': 'Aktywna'
 'Inactive rules are ignored during evaluation.': 'Nieaktywne reguły są pomijane podczas oceny.'
@@ -38,6 +40,9 @@ portadesign_data_quality:
         overall: 'Ogółem'
         by_channel: 'Według kanału'
         by_category: 'Według kategorii'
+        by_profile: 'Według kategorii × kanału'
+        no_profile: 'Dla tej kategorii i kanału nie skonfigurowano profilu jakości.'
+        profile_without_mandatory: 'Profil „{{name}}” nie ma wymagań obowiązkowych, nie można określić gotowości.'
         mandatory_rules: 'Reguły obowiązkowe'
         complete: 'Spełnione'
         incomplete: 'Niespełnione'
@@ -47,6 +52,12 @@ portadesign_data_quality:
         no_object: 'Nie wybrano obiektu'
         no_report: 'Raport jakości jest niedostępny'
         no_scopes: 'Ten produkt nie jest przypisany do żadnego kanału ani kategorii'
+    profile_status:
+        ready: 'Gotowe'
+        incomplete: 'Niekompletne'
+        not_configured: 'Nieskonfigurowane'
+        ambiguous: 'Wiele profili'
+        error: 'Błąd oceny'
     gates:
         title: 'Bramki workflow:'
     workflow:
@@ -60,6 +71,7 @@ portadesign_data_quality:
     description:
         global: 'Globalna'
         weight: 'Waga %weight%'
+        max_length: 'maks. %length% znaków'
         inactive: '[nieaktywna]'
         no_target_key: '(brak klucza docelowego)'
     option:

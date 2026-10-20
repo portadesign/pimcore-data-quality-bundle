@@ -13,6 +13,11 @@ use Pimcore\Model\Element\AbstractElement;
 use Portadesign\DataQualityBundle\Contract\ClassificationStoreKeyResolverInterface;
 use Pimcore\Security\User\TokenStorageUserResolver;
 use Portadesign\DataQualityBundle\Contract\QualityConfigurationInterface;
+use Portadesign\DataQualityBundle\Contract\TargetKeyOptionsContributorInterface;
+use Portadesign\DataQualityBundle\Resolver\QualityProfileResolver;
+use Portadesign\DataQualityBundle\Resolver\ScopedQualityRule;
+use Portadesign\DataQualityBundle\Support\RuleConstraints;
+use Symfony\Component\DependencyInjection\Attribute\TaggedIterator;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -28,6 +33,9 @@ final class DataQualityRuleDescriptionListener implements EventSubscriberInterfa
         private readonly TranslatorInterface $translator,
         private readonly TokenStorageUserResolver $userResolver,
         private readonly int $classificationStoreId,
+        /** @var iterable<TargetKeyOptionsContributorInterface> */
+        #[TaggedIterator('quality.target_key_options')]
+        private readonly iterable $targetKeyContributors = [],
     ) {
     }
 
@@ -61,6 +69,7 @@ final class DataQualityRuleDescriptionListener implements EventSubscriberInterfa
 
         $targetClass = $subject->getTargetClass();
         $locale = $this->userResolver->getUser()?->getLanguage();
+        $scopeObjects = QualityProfileResolver::scopeObjectsOf($subject);
 
         foreach ($rules->getItems() as $rule) {
             /** @phpstan-ignore instanceof.alwaysTrue, function.alreadyNarrowedType */
@@ -68,7 +77,9 @@ final class DataQualityRuleDescriptionListener implements EventSubscriberInterfa
                 continue;
             }
 
-            $rule->setDescription($this->buildDescription($rule, $targetClass, $csKeyTitlesByCode, $locale));
+            // Rules of a profile describe their effective scope, including the profile's own.
+            $effectiveRule = $scopeObjects === [] ? $rule : new ScopedQualityRule($rule, $scopeObjects);
+            $rule->setDescription($this->buildDescription($effectiveRule, $targetClass, $csKeyTitlesByCode, $locale));
         }
     }
 
@@ -87,11 +98,15 @@ final class DataQualityRuleDescriptionListener implements EventSubscriberInterfa
         $weightSuffix = $weight !== null
             ? ' / ' . $this->trans('portadesign_data_quality.description.weight', $locale, ['%weight%' => (int) $weight])
             : '';
+        $maxLength = RuleConstraints::maxLength($rule);
+        $maxLengthSuffix = $maxLength !== null
+            ? ' / ' . $this->trans('portadesign_data_quality.description.max_length', $locale, ['%length%' => $maxLength])
+            : '';
         $inactiveSuffix = $rule->getActive() === false
             ? ' ' . $this->trans('portadesign_data_quality.description.inactive', $locale)
             : '';
 
-        return \sprintf('%s / %s / %s%s%s', $scope, $keyLabel, $level, $weightSuffix, $inactiveSuffix);
+        return \sprintf('%s / %s / %s%s%s%s', $scope, $keyLabel, $level, $weightSuffix, $maxLengthSuffix, $inactiveSuffix);
     }
 
     /**
@@ -145,6 +160,14 @@ final class DataQualityRuleDescriptionListener implements EventSubscriberInterfa
             $title = $csKeyTitlesByCode[$targetKey];
 
             return $title !== '' && $title !== $targetKey ? \sprintf('%s (%s)', $title, $targetKey) : $targetKey;
+        }
+
+        foreach ($this->targetKeyContributors as $contributor) {
+            foreach ($contributor->getTargetKeyOptions((string) $targetClassName, $locale) as $option) {
+                if ($option['value'] === $targetKey) {
+                    return $option['key'];
+                }
+            }
         }
 
         // Localized fields (Product.name/description) are nested under "localizedfields", not

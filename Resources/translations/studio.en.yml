@@ -20,6 +20,8 @@ user-management:
 'Recommended': 'Recommended'
 'Optional': 'Optional'
 'Weight': 'Weight'
+'Maximum Length': 'Maximum Length'
+'Optional. Maximum number of characters, counted on the plain text (HTML tags removed). Empty = no limit. Applies to text targets.': 'Optional. Maximum number of characters, counted on the plain text (HTML tags removed). Empty = no limit. Applies to text targets.'
 'Relative weight of this rule within the mandatory-rule score calculation.': 'Relative weight of this rule within the mandatory-rule score calculation.'
 'Active': 'Active'
 'Inactive rules are ignored during evaluation.': 'Inactive rules are ignored during evaluation.'
@@ -38,6 +40,9 @@ portadesign_data_quality:
         overall: 'Overall'
         by_channel: 'By channel'
         by_category: 'By category'
+        by_profile: 'By category × channel'
+        no_profile: 'No quality profile is configured for this category and channel.'
+        profile_without_mandatory: 'Profile "{{name}}" has no mandatory requirement, so readiness can''t be determined.'
         mandatory_rules: 'Mandatory rules'
         complete: 'Complete'
         incomplete: 'Incomplete'
@@ -47,6 +52,12 @@ portadesign_data_quality:
         no_object: 'No object selected'
         no_report: 'No quality report available'
         no_scopes: 'This product is not assigned to any channel or category'
+    profile_status:
+        ready: 'Ready'
+        incomplete: 'Incomplete'
+        not_configured: 'Not configured'
+        ambiguous: 'Multiple profiles'
+        error: 'Evaluation error'
     gates:
         title: 'Workflow gates:'
     workflow:
@@ -60,6 +71,7 @@ portadesign_data_quality:
     description:
         global: 'Global'
         weight: 'Weight %weight%'
+        max_length: 'max %length% chars'
         inactive: '[inactive]'
         no_target_key: '(no target key)'
     option:

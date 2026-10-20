@@ -20,6 +20,8 @@ user-management:
 'Recommended': 'Doporučené'
 'Optional': 'Volitelné'
 'Weight': 'Váha'
+'Maximum Length': 'Maximální délka'
+'Optional. Maximum number of characters, counted on the plain text (HTML tags removed). Empty = no limit. Applies to text targets.': 'Volitelné. Maximální počet znaků, počítáno z prostého textu (bez HTML značek). Prázdné = bez omezení. Platí pro textové cíle.'
 'Relative weight of this rule within the mandatory-rule score calculation.': 'Relativní váha tohoto pravidla ve výpočtu skóre z povinných pravidel.'
 'Active': 'Aktivní'
 'Inactive rules are ignored during evaluation.': 'Neaktivní pravidla se při vyhodnocení ignorují.'
@@ -38,6 +40,9 @@ portadesign_data_quality:
         overall: 'Celkově'
         by_channel: 'Podle kanálu'
         by_category: 'Podle kategorie'
+        by_profile: 'Podle kategorie × kanálu'
+        no_profile: 'Pro tuto kategorii a kanál není nastaven profil kvality.'
+        profile_without_mandatory: 'Profil "{{name}}" nemá žádný povinný požadavek, připravenost nelze určit.'
         mandatory_rules: 'Povinná pravidla'
         complete: 'Splněno'
         incomplete: 'Nesplněno'
@@ -47,6 +52,12 @@ portadesign_data_quality:
         no_object: 'Není vybrán žádný objekt'
         no_report: 'Report kvality není k dispozici'
         no_scopes: 'Produkt není přiřazen k žádnému kanálu ani kategorii'
+    profile_status:
+        ready: 'Připraveno'
+        incomplete: 'Nekompletní'
+        not_configured: 'Nenastaveno'
+        ambiguous: 'Více profilů'
+        error: 'Chyba vyhodnocení'
     gates:
         title: 'Brány workflow:'
     workflow:
@@ -60,6 +71,7 @@ portadesign_data_quality:
     description:
         global: 'Globální'
         weight: 'Váha %weight%'
+        max_length: 'max %length% znaků'
         inactive: '[neaktivní]'
         no_target_key: '(bez cílového klíče)'
     option:

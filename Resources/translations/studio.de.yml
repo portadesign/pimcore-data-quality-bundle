@@ -20,6 +20,8 @@ user-management:
 'Recommended': 'Empfohlen'
 'Optional': 'Optional'
 'Weight': 'Gewichtung'
+'Maximum Length': 'Maximale Länge'
+'Optional. Maximum number of characters, counted on the plain text (HTML tags removed). Empty = no limit. Applies to text targets.': 'Optional. Maximale Zeichenanzahl, gezählt im reinen Text (ohne HTML-Tags). Leer = keine Begrenzung. Gilt für Textziele.'
 'Relative weight of this rule within the mandatory-rule score calculation.': 'Relative Gewichtung dieser Regel bei der Berechnung des Werts aus den Pflichtregeln.'
 'Active': 'Aktiv'
 'Inactive rules are ignored during evaluation.': 'Inaktive Regeln werden bei der Auswertung ignoriert.'
@@ -38,6 +40,9 @@ portadesign_data_quality:
         overall: 'Gesamt'
         by_channel: 'Nach Kanal'
         by_category: 'Nach Kategorie'
+        by_profile: 'Nach Kategorie × Kanal'
+        no_profile: 'Für diese Kategorie und diesen Kanal ist kein Qualitätsprofil konfiguriert.'
+        profile_without_mandatory: 'Profil "{{name}}" hat keine Pflichtanforderung, die Bereitschaft ist nicht bestimmbar.'
         mandatory_rules: 'Pflichtregeln'
         complete: 'Erfüllt'
         incomplete: 'Nicht erfüllt'
@@ -47,6 +52,12 @@ portadesign_data_quality:
         no_object: 'Kein Objekt ausgewählt'
         no_report: 'Kein Qualitätsbericht verfügbar'
         no_scopes: 'Dieses Produkt ist keinem Kanal und keiner Kategorie zugeordnet'
+    profile_status:
+        ready: 'Bereit'
+        incomplete: 'Unvollständig'
+        not_configured: 'Nicht konfiguriert'
+        ambiguous: 'Mehrere Profile'
+        error: 'Auswertungsfehler'
     gates:
         title: 'Workflow-Sperren:'
     workflow:
@@ -60,6 +71,7 @@ portadesign_data_quality:
     description:
         global: 'Global'
         weight: 'Gewichtung %weight%'
+        max_length: 'max. %length% Zeichen'
         inactive: '[inaktiv]'
         no_target_key: '(kein Zielschlüssel)'
     option:

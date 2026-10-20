@@ -2,7 +2,7 @@ import React from 'react'
 import { Alert, Card, Empty, Progress, Space, Spin, Statistic, Tag, Tooltip, Typography } from 'antd'
 import { useTranslation } from 'react-i18next'
 import { useQualityReport } from '../hooks/use-quality-report'
-import { type ChannelQualityResult, type CategoryQualityResult, type GateResult, type QualityCheck, type QualityResultDto } from '../types'
+import { type ChannelQualityResult, type CategoryQualityResult, type GateResult, type ProfileReadinessResult, type ProfileStatus, type QualityCheck, type QualityResultDto } from '../types'
 
 export interface QualityReportTabProps {
   objectId: number
@@ -88,6 +88,9 @@ const FieldTrafficLights = ({ checks }: { checks: QualityCheck[] }): React.JSX.E
                 }}
               />
               <Typography.Text style={{ fontSize: 12 }}>{label}</Typography.Text>
+              {check.detail !== undefined && check.detail !== null && (
+                <Typography.Text type='secondary' style={{ fontSize: 11 }}>{check.detail}</Typography.Text>
+              )}
               {(check.gates ?? []).map((gate) => (
                 <Tag
                   key={`${gate.workflow}:${gate.transition}`}
@@ -144,6 +147,52 @@ const ScopeResultCard = ({ title, result }: { title: string, result: QualityResu
   )
 }
 
+const profileStatusColor: Record<ProfileStatus, string> = {
+  ready: 'green',
+  incomplete: 'red',
+  not_configured: 'default',
+  ambiguous: 'orange',
+  error: 'orange'
+}
+
+// One card per category × channel combination the product is in. Only a configured profile
+// gets a score; a combination without one says so instead of looking ready.
+const ProfileResultCard = ({ profile }: { profile: ProfileReadinessResult }): React.JSX.Element => {
+  const { t } = useTranslation()
+  const title = (
+    <Space>
+      <span>{profile.categoryName} × {profile.channelName}</span>
+      <Tag color={profileStatusColor[profile.status]}>{t(`portadesign_data_quality.profile_status.${profile.status}`)}</Tag>
+    </Space>
+  )
+
+  if (profile.score === null || profile.status === 'not_configured') {
+    return (
+      <Card size='small' title={title} style={{ marginBottom: 12 }}>
+        <Typography.Text type='secondary'>
+          {t(profile.profileId === null ? 'portadesign_data_quality.report.no_profile' : 'portadesign_data_quality.report.profile_without_mandatory', { name: profile.profileName ?? '' })}
+        </Typography.Text>
+      </Card>
+    )
+  }
+
+  return (
+    <Card size='small' title={title} style={{ marginBottom: 12 }}>
+      <Space direction='vertical' size='middle' style={{ width: '100%' }}>
+        <Space size='large' align='center'>
+          <Progress type='circle' size={64} percent={profile.score} status={progressStatus({ ...profile, score: profile.score, channelId: profile.channelId, categoryId: profile.categoryId })} />
+          <Statistic
+            title={t('portadesign_data_quality.report.mandatory_rules')}
+            value={t(profile.mandatoryComplete ? 'portadesign_data_quality.report.complete' : 'portadesign_data_quality.report.incomplete')}
+            valueStyle={{ color: profile.mandatoryComplete ? '#3f8600' : '#cf1322' }}
+          />
+        </Space>
+        <FieldTrafficLights checks={profile.checks} />
+      </Space>
+    </Card>
+  )
+}
+
 export const QualityReportTab = ({ objectId }: QualityReportTabProps): React.JSX.Element => {
   const { t } = useTranslation()
   const { data, loading, error, refetch } = useQualityReport(objectId)
@@ -182,6 +231,15 @@ export const QualityReportTab = ({ objectId }: QualityReportTabProps): React.JSX
 
       {!hasScopes && (
         <Empty description={t('portadesign_data_quality.report.no_scopes')} />
+      )}
+
+      {(data.byProfile ?? []).length > 0 && (
+        <div>
+          <Typography.Title level={5} style={{ paddingLeft: 12 }}>{t('portadesign_data_quality.report.by_profile')}</Typography.Title>
+          {(data.byProfile ?? []).map((profile: ProfileReadinessResult) => (
+            <ProfileResultCard key={`${profile.categoryId}:${profile.channelId}`} profile={profile} />
+          ))}
+        </div>
       )}
 
       {data.byChannel.length > 0 && (

@@ -25,4 +25,12 @@ final class FakeDataQualityConfiguration extends DataQualityConfiguration
     {
         return $this->fakeRules;
     }
+
+    /**
+     * @return list<\Pimcore\Model\DataObject\Concrete>
+     */
+    public function getScopeObjects(): array
+    {
+        return [];
+    }
 }

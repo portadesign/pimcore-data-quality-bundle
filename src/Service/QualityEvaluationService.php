@@ -7,8 +7,10 @@ namespace Portadesign\DataQualityBundle\Service;
 use Pimcore\Model\DataObject\ClassDefinition;
 use Pimcore\Model\DataObject\Concrete;
 use Portadesign\DataQualityBundle\Contract\ClassificationStoreKeyResolverInterface;
+use Portadesign\DataQualityBundle\Contract\ExplainingRuleCheckerInterface;
 use Portadesign\DataQualityBundle\Contract\QualityConfigurationInterface;
 use Portadesign\DataQualityBundle\Contract\RuleCheckerInterface;
+use Portadesign\DataQualityBundle\Contract\TargetKeyOptionsContributorInterface;
 use Portadesign\DataQualityBundle\Dto\QualityCheck;
 use Portadesign\DataQualityBundle\Dto\QualityResult;
 use Portadesign\DataQualityBundle\Exception\RuleConfigurationException;
@@ -26,6 +28,9 @@ final class QualityEvaluationService
         private readonly QualityConfigurationResolver $resolver,
         private readonly ClassificationStoreKeyResolverInterface $classificationStoreKeyResolver,
         private readonly int $classificationStoreId,
+        /** @var iterable<TargetKeyOptionsContributorInterface> */
+        #[TaggedIterator('quality.target_key_options')]
+        private readonly iterable $targetKeyContributors = [],
     ) {
     }
 
@@ -121,6 +126,7 @@ final class QualityEvaluationService
         foreach ($rules as $rule) {
             $checker = $this->findChecker($rule, $object);
             $satisfied = $checker->check($object, $rule);
+            $detail = ! $satisfied && $checker instanceof ExplainingRuleCheckerInterface ? $checker->explain($object, $rule) : null;
 
             $level = (string) $rule->getRequirementLevel();
             $weight = (float) $rule->getWeight();
@@ -136,6 +142,7 @@ final class QualityEvaluationService
                 weight: $weight,
                 targetKey: $rule->getTargetKey(),
                 label: $this->resolveLabel($rule->getTargetKey(), $ruleName, $object->getClassName(), $classificationStoreKeyTitles),
+                detail: $detail,
             );
 
             if ($level === 'mandatory') {
@@ -160,6 +167,7 @@ final class QualityEvaluationService
             score: $score,
             mandatoryComplete: $mandatoryComplete,
             checks: $checks,
+            configured: $mandatoryTotalWeight > 0.0,
         );
     }
 
@@ -187,6 +195,14 @@ final class QualityEvaluationService
 
         if (isset($classificationStoreKeyTitles[$targetKey]) && $classificationStoreKeyTitles[$targetKey] !== '') {
             return $classificationStoreKeyTitles[$targetKey];
+        }
+
+        foreach ($this->targetKeyContributors as $contributor) {
+            foreach ($contributor->getTargetKeyOptions((string) $className, null) as $option) {
+                if ($option['value'] === $targetKey) {
+                    return $option['key'];
+                }
+            }
         }
 
         return $targetKey;

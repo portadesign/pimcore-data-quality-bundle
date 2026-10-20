@@ -11,6 +11,8 @@ use Pimcore\Model\DataObject\DataQualityConfiguration;
 use Pimcore\Model\DataObject\Fieldcollection\Data\AbstractData;
 use Pimcore\Security\User\TokenStorageUserResolver;
 use Portadesign\DataQualityBundle\Contract\ClassificationStoreKeyResolverInterface;
+use Portadesign\DataQualityBundle\Contract\TargetKeyOptionsContributorInterface;
+use Symfony\Component\DependencyInjection\Attribute\TaggedIterator;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
@@ -28,6 +30,9 @@ final class TargetKeyOptionsProvider implements SelectOptionsProviderInterface
         private readonly TranslatorInterface $translator,
         private readonly TokenStorageUserResolver $userResolver,
         private readonly int $classificationStoreId,
+        /** @var iterable<TargetKeyOptionsContributorInterface> */
+        #[TaggedIterator('quality.target_key_options')]
+        private readonly iterable $contributors = [],
     ) {
     }
 
@@ -49,6 +54,7 @@ final class TargetKeyOptionsProvider implements SelectOptionsProviderInterface
         return [
             ...$this->coreFieldOptions($configuration->getTargetClass(), $locale),
             ...$this->classificationStoreKeyOptions($locale),
+            ...$this->contributedOptions((string) $configuration->getTargetClass(), $locale),
         ];
     }
 
@@ -132,6 +138,20 @@ final class TargetKeyOptionsProvider implements SelectOptionsProviderInterface
             ],
             $this->keyResolver->listActiveKeys($this->classificationStoreId),
         );
+    }
+
+    /**
+     * @return list<array{key: string, value: string}>
+     */
+    private function contributedOptions(string $targetClassName, ?string $locale): array
+    {
+        $options = [];
+
+        foreach ($this->contributors as $contributor) {
+            $options = [...$options, ...$contributor->getTargetKeyOptions($targetClassName, $locale)];
+        }
+
+        return $options;
     }
 
     private function prefixedLabel(string $key, string $label, ?string $locale): string

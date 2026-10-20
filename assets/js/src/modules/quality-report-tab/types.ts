@@ -13,6 +13,7 @@ export interface QualityCheck {
   weight: number
   targetKey: string | null
   label: string
+  detail?: string | null
   gates?: CheckGate[]
 }
 
@@ -28,6 +29,7 @@ export interface GateResult {
 export interface QualityResultDto {
   score: number
   mandatoryComplete: boolean
+  configured?: boolean
   channelId: number | null
   categoryId: number | null
   checks: QualityCheck[]
@@ -43,9 +45,26 @@ export interface CategoryQualityResult extends QualityResultDto {
   categoryName: string
 }
 
+export type ProfileStatus = 'ready' | 'incomplete' | 'not_configured' | 'ambiguous' | 'error'
+
+export interface ProfileReadinessResult {
+  categoryId: number
+  categoryName: string
+  channelId: number
+  channelName: string
+  status: ProfileStatus
+  profileId: number | null
+  profileName: string | null
+  score: number | null
+  mandatoryComplete: boolean
+  configured: boolean
+  checks: QualityCheck[]
+}
+
 export interface QualityReport {
   overall: QualityResultDto
   byChannel: ChannelQualityResult[]
   byCategory: CategoryQualityResult[]
+  byProfile?: ProfileReadinessResult[]
   gates: GateResult[]
 }

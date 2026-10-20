@@ -25,6 +25,11 @@ services:
         arguments:
             $classificationStoreId: '%portadesign_data_quality.classification_store_id%'
 
+    Portadesign\DataQualityBundle\OptionProvider\ClassificationStoreGroupOptionsProvider:
+        public: true
+        arguments:
+            $classificationStoreId: '%portadesign_data_quality.classification_store_id%'
+
     Portadesign\DataQualityBundle\Contract\ClassificationStoreKeyResolverInterface:
         class: Portadesign\DataQualityBundle\Support\PimcoreClassificationStoreKeyResolver
 

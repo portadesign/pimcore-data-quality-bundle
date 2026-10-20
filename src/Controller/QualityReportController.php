@@ -8,9 +8,12 @@ use Pimcore\Model\DataObject\Concrete;
 use Pimcore\Model\DataObject\Product;
 use Portadesign\DataQualityBundle\Contract\QualityConfigurationInterface;
 use Portadesign\DataQualityBundle\Dto\GateResult;
+use Portadesign\DataQualityBundle\Dto\ProfileReadiness;
 use Portadesign\DataQualityBundle\Dto\QualityResult;
 use Portadesign\DataQualityBundle\Installer;
 use Portadesign\DataQualityBundle\Resolver\QualityConfigurationResolver;
+use Portadesign\DataQualityBundle\Resolver\QualityProfileResolver;
+use Portadesign\DataQualityBundle\Service\ProfileReadinessService;
 use Portadesign\DataQualityBundle\Service\QualityEvaluationService;
 use Portadesign\DataQualityBundle\Service\QualityGateEvaluator;
 use Psr\Log\LoggerInterface;
@@ -23,7 +26,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 /**
  * Read-only live quality report for a single Product: an "overall" score (rules scoped to no
  * particular channel/category), plus one score per channel/category the product is actually
- * assigned to. Never persists anything — this is a separate read path from
+ * assigned to, plus one readiness per category × channel combination (byProfile, see
+ * ProfileReadinessService). Never persists anything — this is a separate read path from
  * ProductQualityPostUpdateListener, which is what maintains the `portadesign_quality_scores`
  * table on save.
  */
@@ -40,6 +44,8 @@ class QualityReportController extends AbstractController
         #[Autowire('%portadesign_data_quality.category_relation_field_name%')]
         private readonly string $categoryRelationFieldName,
         private readonly QualityGateEvaluator $gateEvaluator,
+        private readonly QualityProfileResolver $profileResolver,
+        private readonly ProfileReadinessService $profileReadinessService,
     ) {
     }
 
@@ -61,7 +67,7 @@ class QualityReportController extends AbstractController
      * assembly) is unit-testable without a booted Pimcore kernel/DB — only the thin
      * Concrete::getById() lookup above needs one.
      *
-     * @return array{overall: array<string, mixed>, byChannel: list<array<string, mixed>>, byCategory: list<array<string, mixed>>, gates: list<array<string, mixed>>}
+     * @return array{overall: array<string, mixed>, byChannel: list<array<string, mixed>>, byCategory: list<array<string, mixed>>, byProfile: list<array<string, mixed>>, gates: list<array<string, mixed>>}
      */
     public function buildReport(Product $object): array
     {
@@ -97,12 +103,21 @@ class QualityReportController extends AbstractController
             ];
         }
 
+        $byProfile = $this->profileReadinessService->evaluate(
+            $object,
+            $categories,
+            $channels,
+            $activeRules,
+            $this->profileResolver->loadProfiles('Product'),
+        );
+
         $gates = $this->evaluateGatesSafely($object);
 
         return [
             'overall' => $this->annotateGates([...$overall->toArray(), 'channelId' => null, 'categoryId' => null], $gates),
             'byChannel' => \array_map(fn (array $result): array => $this->annotateGates($result, $gates), $byChannel),
             'byCategory' => \array_map(fn (array $result): array => $this->annotateGates($result, $gates), $byCategory),
+            'byProfile' => \array_map(fn (ProfileReadiness $readiness): array => $this->annotateGates($readiness->toArray(), $gates), $byProfile),
             'gates' => \array_map(static fn (GateResult $gate): array => $gate->toArray(), $gates),
         ];
     }
