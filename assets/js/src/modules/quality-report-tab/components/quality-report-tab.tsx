@@ -129,18 +129,23 @@ const GatesBar = ({ gates }: { gates: GateResult[] }): React.JSX.Element | null 
 
 const ScopeResultCard = ({ title, result }: { title: string, result: QualityResultDto }): React.JSX.Element => {
   const { t } = useTranslation()
+  const configured = result.configured !== false
 
   return (
     <Card size='small' title={title} style={{ marginBottom: 12 }}>
       <Space direction='vertical' size='middle' style={{ width: '100%' }}>
-        <Space size='large' align='center'>
-          <Progress type='circle' size={64} percent={result.score} status={progressStatus(result)} />
-          <Statistic
-            title={t('portadesign_data_quality.report.mandatory_rules')}
-            value={t(result.mandatoryComplete ? 'portadesign_data_quality.report.complete' : 'portadesign_data_quality.report.incomplete')}
-            valueStyle={{ color: result.mandatoryComplete ? '#3f8600' : '#cf1322' }}
-          />
-        </Space>
+        {configured
+          ? (
+            <Space size='large' align='center'>
+              <Progress type='circle' size={64} percent={result.score} status={progressStatus(result)} />
+              <Statistic
+                title={t('portadesign_data_quality.report.mandatory_rules')}
+                value={t(result.mandatoryComplete ? 'portadesign_data_quality.report.complete' : 'portadesign_data_quality.report.incomplete')}
+                valueStyle={{ color: result.mandatoryComplete ? '#3f8600' : '#cf1322' }}
+              />
+            </Space>
+            )
+          : <Typography.Text type='secondary'>{t('portadesign_data_quality.report.no_mandatory_rules')}</Typography.Text>}
         <FieldTrafficLights checks={result.checks} />
       </Space>
     </Card>

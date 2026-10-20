@@ -45,6 +45,7 @@ portadesign_data_quality:
         profile_without_mandatory: 'Profil "{{name}}" hat keine Pflichtanforderung, die Bereitschaft ist nicht bestimmbar.'
         profile_ambiguous: 'Mehrere Profile haben genau diese Kategorie und diesen Kanal, die Bereitschaft ist nicht bestimmbar.'
         profile_error: 'Die Bereitschaft für diese Kategorie und diesen Kanal konnte nicht ausgewertet werden.'
+        no_mandatory_rules: 'Es gelten keine Pflichtregeln, daher gibt es keine Bewertung.'
         mandatory_rules: 'Pflichtregeln'
         complete: 'Erfüllt'
         incomplete: 'Nicht erfüllt'

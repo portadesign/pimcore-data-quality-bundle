@@ -45,6 +45,7 @@ portadesign_data_quality:
         profile_without_mandatory: 'Profil "{{name}}" nemá žádný povinný požadavek, připravenost nelze určit.'
         profile_ambiguous: 'Pro tuto kategorii a kanál existuje více profilů se stejným rozsahem, připravenost nelze určit.'
         profile_error: 'Připravenost pro tuto kategorii a kanál se nepodařilo vyhodnotit.'
+        no_mandatory_rules: 'Neplatí žádné povinné pravidlo, skóre nelze určit.'
         mandatory_rules: 'Povinná pravidla'
         complete: 'Splněno'
         incomplete: 'Nesplněno'

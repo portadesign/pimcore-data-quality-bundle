@@ -45,6 +45,7 @@ portadesign_data_quality:
         profile_without_mandatory: 'Profil „{{name}}” nie ma wymagań obowiązkowych, nie można określić gotowości.'
         profile_ambiguous: 'Wiele profili ma dokładnie tę kategorię i kanał, nie można określić gotowości.'
         profile_error: 'Nie udało się ocenić gotowości dla tej kategorii i kanału.'
+        no_mandatory_rules: 'Nie obowiązują żadne reguły obowiązkowe, więc nie ma wyniku.'
         mandatory_rules: 'Reguły obowiązkowe'
         complete: 'Spełnione'
         incomplete: 'Niespełnione'

@@ -1,0 +1,47 @@
+{
+  "allFiles": [
+    "/bundles/portadesigndataquality/build/d81cd4e6-b91f-4257-9273-523b1def639b/static/js/main.de0a4a51.js",
+    "/bundles/portadesigndataquality/build/d81cd4e6-b91f-4257-9273-523b1def639b/static/js/remoteEntry.js",
+    "/bundles/portadesigndataquality/build/d81cd4e6-b91f-4257-9273-523b1def639b/static/js/async/379.7625cf98.js",
+    "/bundles/portadesigndataquality/build/d81cd4e6-b91f-4257-9273-523b1def639b/static/js/async/__federation_expose_default_export.d27317cd.js",
+    "/bundles/portadesigndataquality/build/d81cd4e6-b91f-4257-9273-523b1def639b/static/js/109.6140ed04.js",
+    "/bundles/portadesigndataquality/build/d81cd4e6-b91f-4257-9273-523b1def639b/static/js/async/331.9970efa4.js",
+    "/bundles/portadesigndataquality/build/d81cd4e6-b91f-4257-9273-523b1def639b/mf-stats.json",
+    "/bundles/portadesigndataquality/build/d81cd4e6-b91f-4257-9273-523b1def639b/mf-manifest.json",
+    "/bundles/portadesigndataquality/build/d81cd4e6-b91f-4257-9273-523b1def639b/main.html"
+  ],
+  "entries": {
+    "main": {
+      "html": [
+        "/bundles/portadesigndataquality/build/d81cd4e6-b91f-4257-9273-523b1def639b/main.html"
+      ],
+      "initial": {
+        "js": [
+          "/bundles/portadesigndataquality/build/d81cd4e6-b91f-4257-9273-523b1def639b/static/js/109.6140ed04.js",
+          "/bundles/portadesigndataquality/build/d81cd4e6-b91f-4257-9273-523b1def639b/static/js/main.de0a4a51.js"
+        ]
+      },
+      "async": {
+        "js": [
+          "/bundles/portadesigndataquality/build/d81cd4e6-b91f-4257-9273-523b1def639b/static/js/async/331.9970efa4.js",
+          "/bundles/portadesigndataquality/build/d81cd4e6-b91f-4257-9273-523b1def639b/static/js/async/379.7625cf98.js"
+        ]
+      }
+    },
+    "portadesign_data_quality_bundle": {
+      "initial": {
+        "js": [
+          "/bundles/portadesigndataquality/build/d81cd4e6-b91f-4257-9273-523b1def639b/static/js/remoteEntry.js"
+        ]
+      },
+      "async": {
+        "js": [
+          "/bundles/portadesigndataquality/build/d81cd4e6-b91f-4257-9273-523b1def639b/static/js/async/331.9970efa4.js",
+          "/bundles/portadesigndataquality/build/d81cd4e6-b91f-4257-9273-523b1def639b/static/js/async/__federation_expose_default_export.d27317cd.js",
+          "/bundles/portadesigndataquality/build/d81cd4e6-b91f-4257-9273-523b1def639b/static/js/async/379.7625cf98.js"
+        ]
+      }
+    }
+  },
+  "integrity": {}
+}

@@ -45,6 +45,7 @@ portadesign_data_quality:
         profile_without_mandatory: 'Profile "{{name}}" has no mandatory requirement, so readiness can''t be determined.'
         profile_ambiguous: 'Several profiles share exactly this category and channel, so readiness can''t be determined.'
         profile_error: 'Readiness could not be evaluated for this category and channel.'
+        no_mandatory_rules: 'No mandatory rules apply, so there is no score.'
         mandatory_rules: 'Mandatory rules'
         complete: 'Complete'
         incomplete: 'Incomplete'

@@ -45,6 +45,7 @@ portadesign_data_quality:
         profile_without_mandatory: 'Le profil « {{name}} » n''a aucune exigence obligatoire ; la disponibilité ne peut pas être déterminée.'
         profile_ambiguous: 'Plusieurs profils ont exactement cette catégorie et ce canal ; la disponibilité ne peut pas être déterminée.'
         profile_error: 'La disponibilité n''a pas pu être évaluée pour cette catégorie et ce canal.'
+        no_mandatory_rules: 'Aucune règle obligatoire ne s''applique, donc pas de score.'
         mandatory_rules: 'Règles obligatoires'
         complete: 'Satisfait'
         incomplete: 'Non satisfait'
