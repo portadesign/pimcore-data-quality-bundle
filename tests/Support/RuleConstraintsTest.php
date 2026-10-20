@@ -5,12 +5,16 @@ declare(strict_types=1);
 namespace Portadesign\DataQualityBundle\Tests\Support;
 
 use PHPUnit\Framework\TestCase;
+use Pimcore\Model\DataObject\Classificationstore;
 use Pimcore\Model\Element\AbstractElement;
+use Portadesign\DataQualityBundle\Contract\ClassificationStoreKeyResolverInterface;
 use Portadesign\DataQualityBundle\Contract\QualityConfigurationInterface;
 use Portadesign\DataQualityBundle\Resolver\ScopedQualityRule;
+use Portadesign\DataQualityBundle\RuleChecker\ClassificationStoreKeyPresenceChecker;
 use Portadesign\DataQualityBundle\RuleChecker\FieldPresenceChecker;
 use Portadesign\DataQualityBundle\Support\RuleConstraints;
 use Portadesign\DataQualityBundle\Tests\Fixture\FakeCoreFieldObject;
+use Portadesign\DataQualityBundle\Tests\Fixture\FakeObjectWithAttributes;
 use Portadesign\DataQualityBundle\Tests\Fixture\FakeQualityRule;
 use Portadesign\DataQualityBundle\Tests\Fixture\FakeValidLanguageProvider;
 
@@ -45,6 +49,25 @@ final class RuleConstraintsTest extends TestCase
 
         $object->setEan('12345');
         self::assertTrue($checker->check($object, $rule));
+    }
+
+    public function testClassificationStoreCheckerFailsAndExplainsTextOverTheLimit(): void
+    {
+        $resolver = $this->createStub(ClassificationStoreKeyResolverInterface::class);
+        $resolver->method('resolveKeyId')->willReturn(42);
+        $checker = new ClassificationStoreKeyPresenceChecker(1, $resolver, new FakeValidLanguageProvider(['en']));
+
+        $store = $this->createStub(Classificationstore::class);
+        $store->method('getActiveGroups')->willReturn([7 => true]);
+        $store->method('getLocalizedKeyValue')->willReturn('<p>1234567890123</p>');
+        $object = new FakeObjectWithAttributes();
+        $object->setAttributes($store);
+        $rule = $this->ruleWithMaxLength(5);
+
+        self::assertFalse($checker->check($object, $rule));
+        self::assertSame('13 / 5 characters (en)', $checker->explain($object, $rule));
+        self::assertTrue($checker->check($object, $this->ruleWithMaxLength(13)));
+        self::assertTrue($checker->check($object, $this->ruleWithMaxLength(null)));
     }
 
     private function ruleWithMaxLength(?int $maxLength): QualityConfigurationInterface

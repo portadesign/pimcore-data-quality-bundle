@@ -155,8 +155,20 @@ const profileStatusColor: Record<ProfileStatus, string> = {
   error: 'orange'
 }
 
-// One card per category × channel combination the product is in. Only a configured profile
-// gets a score; a combination without one says so instead of looking ready.
+const profileMessageKey = (profile: ProfileReadinessResult): string => {
+  if (profile.status === 'ambiguous') {
+    return 'portadesign_data_quality.report.profile_ambiguous'
+  }
+
+  if (profile.status === 'error') {
+    return 'portadesign_data_quality.report.profile_error'
+  }
+
+  return profile.profileId === null
+    ? 'portadesign_data_quality.report.no_profile'
+    : 'portadesign_data_quality.report.profile_without_mandatory'
+}
+
 const ProfileResultCard = ({ profile }: { profile: ProfileReadinessResult }): React.JSX.Element => {
   const { t } = useTranslation()
   const title = (
@@ -170,7 +182,7 @@ const ProfileResultCard = ({ profile }: { profile: ProfileReadinessResult }): Re
     return (
       <Card size='small' title={title} style={{ marginBottom: 12 }}>
         <Typography.Text type='secondary'>
-          {t(profile.profileId === null ? 'portadesign_data_quality.report.no_profile' : 'portadesign_data_quality.report.profile_without_mandatory', { name: profile.profileName ?? '' })}
+          {t(profileMessageKey(profile), { name: profile.profileName ?? '' })}
         </Typography.Text>
       </Card>
     )

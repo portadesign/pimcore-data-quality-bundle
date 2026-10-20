@@ -17,7 +17,7 @@ use Portadesign\DataQualityBundle\Contract\TargetKeyOptionsContributorInterface;
 use Portadesign\DataQualityBundle\Resolver\QualityProfileResolver;
 use Portadesign\DataQualityBundle\Resolver\ScopedQualityRule;
 use Portadesign\DataQualityBundle\Support\RuleConstraints;
-use Symfony\Component\DependencyInjection\Attribute\TaggedIterator;
+use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -34,7 +34,7 @@ final class DataQualityRuleDescriptionListener implements EventSubscriberInterfa
         private readonly TokenStorageUserResolver $userResolver,
         private readonly int $classificationStoreId,
         /** @var iterable<TargetKeyOptionsContributorInterface> */
-        #[TaggedIterator('quality.target_key_options')]
+        #[AutowireIterator('quality.target_key_options')]
         private readonly iterable $targetKeyContributors = [],
     ) {
     }
@@ -77,7 +77,6 @@ final class DataQualityRuleDescriptionListener implements EventSubscriberInterfa
                 continue;
             }
 
-            // Rules of a profile describe their effective scope, including the profile's own.
             $effectiveRule = $scopeObjects === [] ? $rule : new ScopedQualityRule($rule, $scopeObjects);
             $rule->setDescription($this->buildDescription($effectiveRule, $targetClass, $csKeyTitlesByCode, $locale));
         }

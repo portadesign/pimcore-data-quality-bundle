@@ -43,6 +43,8 @@ portadesign_data_quality:
         by_profile: 'Według kategorii × kanału'
         no_profile: 'Dla tej kategorii i kanału nie skonfigurowano profilu jakości.'
         profile_without_mandatory: 'Profil „{{name}}” nie ma wymagań obowiązkowych, nie można określić gotowości.'
+        profile_ambiguous: 'Wiele profili ma dokładnie tę kategorię i kanał, nie można określić gotowości.'
+        profile_error: 'Nie udało się ocenić gotowości dla tej kategorii i kanału.'
         mandatory_rules: 'Reguły obowiązkowe'
         complete: 'Spełnione'
         incomplete: 'Niespełnione'

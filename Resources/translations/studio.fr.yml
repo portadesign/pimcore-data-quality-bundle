@@ -43,6 +43,8 @@ portadesign_data_quality:
         by_profile: 'Par catégorie × canal'
         no_profile: 'Aucun profil qualité n''est configuré pour cette catégorie et ce canal.'
         profile_without_mandatory: 'Le profil « {{name}} » n''a aucune exigence obligatoire ; la disponibilité ne peut pas être déterminée.'
+        profile_ambiguous: 'Plusieurs profils ont exactement cette catégorie et ce canal ; la disponibilité ne peut pas être déterminée.'
+        profile_error: 'La disponibilité n''a pas pu être évaluée pour cette catégorie et ce canal.'
         mandatory_rules: 'Règles obligatoires'
         complete: 'Satisfait'
         incomplete: 'Non satisfait'

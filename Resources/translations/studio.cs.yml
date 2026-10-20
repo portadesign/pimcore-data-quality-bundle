@@ -43,6 +43,8 @@ portadesign_data_quality:
         by_profile: 'Podle kategorie × kanálu'
         no_profile: 'Pro tuto kategorii a kanál není nastaven profil kvality.'
         profile_without_mandatory: 'Profil "{{name}}" nemá žádný povinný požadavek, připravenost nelze určit.'
+        profile_ambiguous: 'Pro tuto kategorii a kanál existuje více profilů se stejným rozsahem, připravenost nelze určit.'
+        profile_error: 'Připravenost pro tuto kategorii a kanál se nepodařilo vyhodnotit.'
         mandatory_rules: 'Povinná pravidla'
         complete: 'Splněno'
         incomplete: 'Nesplněno'

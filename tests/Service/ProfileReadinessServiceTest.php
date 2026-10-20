@@ -49,9 +49,12 @@ final class ProfileReadinessServiceTest extends TestCase
     public function testProfileWithOnlyRecommendedRequirementsIsNotConfiguredRatherThanReady(): void
     {
         $profile = $this->profile(1, [$this->showerEnclosures, $this->siko]);
-        $rules = [new ScopedQualityRule(new FakeQualityRule(id: 'r', requirementLevel: 'recommended'), $profile->scopeObjects)];
+        $rules = [
+            new FakeQualityRule(id: 'global'),
+            new ScopedQualityRule(new FakeQualityRule(id: 'r', requirementLevel: 'recommended'), $profile->scopeObjects),
+        ];
 
-        $readiness = $this->service(['r' => true])->evaluatePair(new FakeCoreFieldObject(), $this->showerEnclosures, $this->siko, $rules, [$profile]);
+        $readiness = $this->service(['global' => true, 'r' => true])->evaluatePair(new FakeCoreFieldObject(), $this->showerEnclosures, $this->siko, $rules, [$profile]);
 
         self::assertSame(ProfileReadiness::STATUS_NOT_CONFIGURED, $readiness->status);
         self::assertSame(1, $readiness->profileId);
@@ -59,8 +62,8 @@ final class ProfileReadinessServiceTest extends TestCase
 
     public function testProfileReadinessCountsOwnCategoryAndChannelRulesOnly(): void
     {
-        $siko = $this->profile(1, [$this->showerEnclosures, $this->siko]);
-        $leroyMerlin = $this->profile(2, [$this->showerEnclosures, $this->leroyMerlin]);
+        $siko = $this->profile(1, [$this->showerEnclosures, $this->siko], ['sikoOnly']);
+        $leroyMerlin = $this->profile(2, [$this->showerEnclosures, $this->leroyMerlin], ['leroyMerlinOnly']);
         $rules = [
             new FakeQualityRule(id: 'global'),
             new FakeQualityRule(id: 'category', dependentObjects: [$this->showerEnclosures]),
@@ -81,8 +84,8 @@ final class ProfileReadinessServiceTest extends TestCase
 
     public function testChannelWideProfileConfiguresEveryCategoryOnThatChannel(): void
     {
-        $channelWide = $this->profile(3, [$this->leroyMerlin]);
-        $pair = $this->profile(2, [$this->showerEnclosures, $this->leroyMerlin]);
+        $channelWide = $this->profile(3, [$this->leroyMerlin], ['length']);
+        $pair = $this->profile(2, [$this->showerEnclosures, $this->leroyMerlin], ['pairOnly']);
         $rules = [
             new ScopedQualityRule(new FakeQualityRule(id: 'length'), $channelWide->scopeObjects),
             new ScopedQualityRule(new FakeQualityRule(id: 'pairOnly'), $pair->scopeObjects),
@@ -143,10 +146,11 @@ final class ProfileReadinessServiceTest extends TestCase
 
     /**
      * @param list<Concrete> $scopeObjects
+     * @param list<string>   $mandatoryRuleIds
      */
-    private function profile(int $id, array $scopeObjects): QualityProfile
+    private function profile(int $id, array $scopeObjects, array $mandatoryRuleIds = []): QualityProfile
     {
-        return new QualityProfile($id, 'Profile ' . $id, $scopeObjects, []);
+        return new QualityProfile($id, 'Profile ' . $id, $scopeObjects, [], $mandatoryRuleIds);
     }
 
     private function scopeObject(int $id, string $name): FakeNamedScopeObject

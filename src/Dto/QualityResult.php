@@ -20,7 +20,7 @@ final class QualityResult
     }
 
     /**
-     * @return array{score: float, mandatoryComplete: bool, configured: bool, checks: list<array{ruleId: string, ruleName: string, satisfied: bool, level: string, weight: float, targetKey: ?string, label: string}>}
+     * @return array{score: float, mandatoryComplete: bool, configured: bool, checks: list<array{ruleId: string, ruleName: string, satisfied: bool, level: string, weight: float, targetKey: ?string, label: string, detail: ?string}>}
      */
     public function toArray(): array
     {

@@ -57,7 +57,6 @@ final class ProfileReadinessService
         $pairIds = [(int) $category->getId(), (int) $channel->getId()];
         $exact = \array_values(\array_filter($profiles, static fn (QualityProfile $profile): bool => $profile->hasExactScope($pairIds)));
         $covering = \array_values(\array_filter($profiles, static fn (QualityProfile $profile): bool => $profile->appliesTo($pairIds)));
-        // The pair's own profile first, then channel-wide ones.
         \usort($covering, static fn (QualityProfile $a, QualityProfile $b): int => \count($b->scopeObjects) <=> \count($a->scopeObjects));
         $profileName = $covering !== [] ? \implode(' + ', \array_map(static fn (QualityProfile $profile): string => $profile->name, $covering)) : null;
 
@@ -96,12 +95,28 @@ final class ProfileReadinessService
         }
 
         $status = match (true) {
-            ! $result->configured => ProfileReadiness::STATUS_NOT_CONFIGURED,
+            ! $result->configured, ! $this->hasProfileRequirement($result, $covering) => ProfileReadiness::STATUS_NOT_CONFIGURED,
             $result->mandatoryComplete => ProfileReadiness::STATUS_READY,
             default => ProfileReadiness::STATUS_INCOMPLETE,
         };
 
         return $readiness($status, $profile, $result);
+    }
+
+    /**
+     * @param list<QualityProfile> $profiles
+     */
+    private function hasProfileRequirement(QualityResult $result, array $profiles): bool
+    {
+        $profileRuleIds = \array_merge(...\array_map(static fn (QualityProfile $profile): array => $profile->mandatoryRuleIds, $profiles));
+
+        foreach ($result->checks as $check) {
+            if ($check->level === 'mandatory' && \in_array($check->ruleId, $profileRuleIds, true)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static function nameOf(Concrete $object): string

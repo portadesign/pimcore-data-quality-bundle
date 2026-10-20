@@ -15,12 +15,14 @@ final class QualityProfile
     /**
      * @param list<Concrete> $scopeObjects
      * @param list<int>      $classificationStoreGroupIds
+     * @param list<string>   $mandatoryRuleIds Ids of the profile's own active mandatory rules.
      */
     public function __construct(
         public readonly int $configurationId,
         public readonly string $name,
         public readonly array $scopeObjects,
         public readonly array $classificationStoreGroupIds,
+        public readonly array $mandatoryRuleIds = [],
     ) {
     }
 

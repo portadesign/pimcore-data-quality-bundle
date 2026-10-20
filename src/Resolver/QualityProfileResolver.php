@@ -7,6 +7,7 @@ namespace Portadesign\DataQualityBundle\Resolver;
 use Pimcore\Model\DataObject\Concrete;
 use Pimcore\Model\DataObject\DataQualityConfiguration;
 use Pimcore\Model\DataObject\DataQualityConfiguration\Listing as DataQualityConfigurationListing;
+use Portadesign\DataQualityBundle\Contract\QualityConfigurationInterface;
 use Portadesign\DataQualityBundle\Dto\QualityProfile;
 
 /**
@@ -38,6 +39,7 @@ class QualityProfileResolver
                 name: (string) $configuration->getKey(),
                 scopeObjects: $scopeObjects,
                 classificationStoreGroupIds: self::groupIdsOf($configuration),
+                mandatoryRuleIds: self::mandatoryRuleIdsOf($configuration),
             );
         }
 
@@ -88,6 +90,30 @@ class QualityProfileResolver
             return [];
         }
 
-        return \array_values(\array_map('intval', (array) $configuration->getClassificationStoreGroups()));
+        $groupIds = [];
+
+        foreach ((array) $configuration->getClassificationStoreGroups() as $groupId) {
+            if (\is_numeric($groupId)) {
+                $groupIds[] = (int) $groupId;
+            }
+        }
+
+        return $groupIds;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function mandatoryRuleIdsOf(DataQualityConfiguration $configuration): array
+    {
+        $ids = [];
+
+        foreach ($configuration->getRules() ?? [] as $rule) {
+            if ($rule instanceof QualityConfigurationInterface && $rule->getActive() === true && $rule->getRequirementLevel() === 'mandatory') {
+                $ids[] = (string) $rule->getId();
+            }
+        }
+
+        return $ids;
     }
 }

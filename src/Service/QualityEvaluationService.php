@@ -15,6 +15,7 @@ use Portadesign\DataQualityBundle\Dto\QualityCheck;
 use Portadesign\DataQualityBundle\Dto\QualityResult;
 use Portadesign\DataQualityBundle\Exception\RuleConfigurationException;
 use Portadesign\DataQualityBundle\Resolver\QualityConfigurationResolver;
+use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 use Symfony\Component\DependencyInjection\Attribute\TaggedIterator;
 
 final class QualityEvaluationService
@@ -29,7 +30,7 @@ final class QualityEvaluationService
         private readonly ClassificationStoreKeyResolverInterface $classificationStoreKeyResolver,
         private readonly int $classificationStoreId,
         /** @var iterable<TargetKeyOptionsContributorInterface> */
-        #[TaggedIterator('quality.target_key_options')]
+        #[AutowireIterator('quality.target_key_options')]
         private readonly iterable $targetKeyContributors = [],
     ) {
     }

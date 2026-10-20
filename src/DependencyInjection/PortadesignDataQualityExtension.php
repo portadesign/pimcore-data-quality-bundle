@@ -29,7 +29,6 @@ class PortadesignDataQualityExtension extends Extension
 
         $loader->load('services.yaml');
 
-        // Host applications contribute extra rule targets just by implementing the interface.
         $container->registerForAutoconfiguration(TargetKeyOptionsContributorInterface::class)
             ->addTag('quality.target_key_options');
     }

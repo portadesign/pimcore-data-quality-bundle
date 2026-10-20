@@ -12,7 +12,7 @@ use Pimcore\Model\DataObject\Fieldcollection\Data\AbstractData;
 use Pimcore\Security\User\TokenStorageUserResolver;
 use Portadesign\DataQualityBundle\Contract\ClassificationStoreKeyResolverInterface;
 use Portadesign\DataQualityBundle\Contract\TargetKeyOptionsContributorInterface;
-use Symfony\Component\DependencyInjection\Attribute\TaggedIterator;
+use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
@@ -31,7 +31,7 @@ final class TargetKeyOptionsProvider implements SelectOptionsProviderInterface
         private readonly TokenStorageUserResolver $userResolver,
         private readonly int $classificationStoreId,
         /** @var iterable<TargetKeyOptionsContributorInterface> */
-        #[TaggedIterator('quality.target_key_options')]
+        #[AutowireIterator('quality.target_key_options')]
         private readonly iterable $contributors = [],
     ) {
     }
