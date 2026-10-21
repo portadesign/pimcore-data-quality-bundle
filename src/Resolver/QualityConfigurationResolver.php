@@ -21,9 +21,10 @@ class QualityConfigurationResolver
      * once and reuse the result via filter() instead of calling resolve() repeatedly, which would
      * re-query on every call.
      *
-     * In practice there should be at most one DataQualityConfiguration object per targetClass, but
-     * this defensively merges active rules across every match rather than erroring if the data
-     * somehow contains more than one — e.g. during a manual data-fix window.
+     * Rules are merged across every DataQualityConfiguration of the target class: one unscoped
+     * configuration plus any number of scoped ones (quality profiles, see QualityProfileResolver).
+     * Rules of a scoped configuration are wrapped in ScopedQualityRule, which adds the
+     * configuration's scope objects to the rule's own dependent objects.
      *
      * @return list<QualityConfigurationInterface>
      */
@@ -39,9 +40,11 @@ class QualityConfigurationResolver
                 continue;
             }
 
+            $scopeObjects = QualityProfileResolver::scopeObjectsOf($configuration);
+
             foreach ($configuration->getRules() ?? [] as $rule) {
                 if ($rule instanceof QualityConfigurationInterface && $rule->getActive() === true) {
-                    $rules[] = $rule;
+                    $rules[] = $scopeObjects === [] ? $rule : new ScopedQualityRule($rule, $scopeObjects);
                 }
             }
         }

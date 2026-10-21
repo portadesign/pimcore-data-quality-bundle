@@ -6,6 +6,10 @@ namespace Portadesign\DataQualityBundle\Tests\Service;
 
 use PHPUnit\Framework\TestCase;
 use Portadesign\DataQualityBundle\Contract\ClassificationStoreKeyResolverInterface;
+use Pimcore\Model\DataObject\Concrete;
+use Portadesign\DataQualityBundle\Contract\ExplainingRuleCheckerInterface;
+use Portadesign\DataQualityBundle\Contract\QualityConfigurationInterface;
+use Portadesign\DataQualityBundle\Contract\RuleCheckerInterface;
 use Portadesign\DataQualityBundle\Exception\RuleConfigurationException;
 use Portadesign\DataQualityBundle\Resolver\QualityConfigurationResolver;
 use Portadesign\DataQualityBundle\Service\QualityEvaluationService;
@@ -118,6 +122,58 @@ final class QualityEvaluationServiceTest extends TestCase
         self::assertSame(33.33, $result->score);
     }
 
+    public function testResultIsConfiguredOnlyWhenAMandatoryRuleCarriesWeight(): void
+    {
+        $checker = new FakeRuleChecker(static fn (): bool => true, ['1' => true, '2' => true, '3' => true]);
+
+        $withMandatory = $this->makeService([
+            new FakeQualityRule(id: 1, requirementLevel: 'mandatory', weight: 1.0),
+        ], [$checker])->evaluate(new FakeCoreFieldObject());
+        $recommendedOnly = $this->makeService([
+            new FakeQualityRule(id: 2, requirementLevel: 'recommended', weight: 1.0),
+        ], [$checker])->evaluate(new FakeCoreFieldObject());
+        $zeroWeightMandatory = $this->makeService([
+            new FakeQualityRule(id: 3, requirementLevel: 'mandatory', weight: 0.0),
+        ], [$checker])->evaluate(new FakeCoreFieldObject());
+
+        self::assertTrue($withMandatory->configured);
+        self::assertFalse($recommendedOnly->configured);
+        self::assertFalse($zeroWeightMandatory->configured);
+    }
+
+    public function testFailedCheckCarriesTheExplainingCheckersDetailOnly(): void
+    {
+        $explaining = new class implements ExplainingRuleCheckerInterface {
+            public function supports(QualityConfigurationInterface $rule, Concrete $object): bool
+            {
+                return $rule->getTargetKey() === 'explained';
+            }
+
+            public function check(Concrete $object, QualityConfigurationInterface $rule): bool
+            {
+                return $rule->getId() === 'passes';
+            }
+
+            public function explain(Concrete $object, QualityConfigurationInterface $rule): ?string
+            {
+                return 'explanation of ' . $rule->getId();
+            }
+        };
+        $plain = new FakeRuleChecker(static fn (QualityConfigurationInterface $rule): bool => $rule->getTargetKey() === 'plain', ['plainFails' => false]);
+        $rules = [
+            new FakeQualityRule(id: 'fails', targetKey: 'explained'),
+            new FakeQualityRule(id: 'passes', targetKey: 'explained'),
+            new FakeQualityRule(id: 'plainFails', targetKey: 'plain'),
+        ];
+
+        $checks = $this->makeService($rules, [$explaining, $plain])->evaluate(new FakeCoreFieldObject())->toArray()['checks'];
+
+        self::assertSame(
+            ['fails' => 'explanation of fails', 'passes' => null, 'plainFails' => null],
+            \array_column($checks, 'detail', 'ruleId'),
+        );
+    }
+
     public function testUnsupportedRuleThrowsRuleConfigurationException(): void
     {
         $rules = [
@@ -136,7 +192,7 @@ final class QualityEvaluationServiceTest extends TestCase
 
     /**
      * @param list<FakeQualityRule> $rules
-     * @param list<FakeRuleChecker> $checkers
+     * @param list<RuleCheckerInterface> $checkers
      */
     private function makeService(array $rules, array $checkers): QualityEvaluationService
     {

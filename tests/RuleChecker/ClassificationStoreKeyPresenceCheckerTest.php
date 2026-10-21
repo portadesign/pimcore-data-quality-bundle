@@ -9,6 +9,7 @@ use PHPUnit\Framework\TestCase;
 use Portadesign\DataQualityBundle\Contract\ClassificationStoreKeyResolverInterface;
 use Portadesign\DataQualityBundle\Exception\RuleConfigurationException;
 use Portadesign\DataQualityBundle\RuleChecker\ClassificationStoreKeyPresenceChecker;
+use Portadesign\DataQualityBundle\Tests\Fixture\FakeMaxLengthRule;
 use Portadesign\DataQualityBundle\Tests\Fixture\FakeObjectWithAttributes;
 use Portadesign\DataQualityBundle\Tests\Fixture\FakeObjectWithoutAttributes;
 use Portadesign\DataQualityBundle\Tests\Fixture\FakeQualityRule;
@@ -147,6 +148,35 @@ final class ClassificationStoreKeyPresenceCheckerTest extends TestCase
         $this->expectException(RuleConfigurationException::class);
 
         $checker->check($object, new FakeQualityRule(targetType: 'classificationStoreKey', targetKey: 'AS136'));
+    }
+
+    public function testExplainNamesTheLanguageMissingTheValue(): void
+    {
+        $store = $this->createStub(Classificationstore::class);
+        $store->method('getActiveGroups')->willReturn([self::GROUP_ID => true]);
+        $store->method('getLocalizedKeyValue')->willReturnCallback(
+            static fn (int $groupId, int $keyId, ?string $language = 'default'): ?string => $language === 'en' ? 'English value' : null,
+        );
+        $object = new FakeObjectWithAttributes();
+        $object->setAttributes($store);
+
+        self::assertSame('missing (cs)', $this->makeChecker(self::KEY_ID)->explain($object, new FakeMaxLengthRule('AS136', 100)));
+    }
+
+    public function testLimitIsCheckedPerLanguageAndExplainNamesTheOffendingOne(): void
+    {
+        $store = $this->createStub(Classificationstore::class);
+        $store->method('getActiveGroups')->willReturn([self::GROUP_ID => true]);
+        $store->method('getLocalizedKeyValue')->willReturnCallback(
+            static fn (int $groupId, int $keyId, ?string $language = 'default'): string => $language === 'en' ? 'Short' : '<p>Příliš dlouhý text</p>',
+        );
+        $object = new FakeObjectWithAttributes();
+        $object->setAttributes($store);
+        $checker = $this->makeChecker(self::KEY_ID);
+
+        self::assertFalse($checker->check($object, new FakeMaxLengthRule('AS136', 10)));
+        self::assertSame('18 / 10 characters (cs)', $checker->explain($object, new FakeMaxLengthRule('AS136', 10)));
+        self::assertTrue($checker->check($object, new FakeMaxLengthRule('AS136', 18)));
     }
 
     private function makeChecker(?int $resolvedKeyId): ClassificationStoreKeyPresenceChecker

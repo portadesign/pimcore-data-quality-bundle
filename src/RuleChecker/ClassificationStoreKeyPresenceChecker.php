@@ -7,14 +7,16 @@ namespace Portadesign\DataQualityBundle\RuleChecker;
 use Pimcore\Model\DataObject\Classificationstore;
 use Pimcore\Model\DataObject\Concrete;
 use Portadesign\DataQualityBundle\Contract\ClassificationStoreKeyResolverInterface;
+use Portadesign\DataQualityBundle\Contract\ExplainingRuleCheckerInterface;
 use Portadesign\DataQualityBundle\Contract\QualityConfigurationInterface;
-use Portadesign\DataQualityBundle\Contract\RuleCheckerInterface;
 use Portadesign\DataQualityBundle\Contract\ValidLanguageProviderInterface;
 use Portadesign\DataQualityBundle\Exception\RuleConfigurationException;
+use Portadesign\DataQualityBundle\Service\RuleProblemTranslator;
+use Portadesign\DataQualityBundle\Support\RuleConstraints;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 
 #[AutoconfigureTag('quality.rule_checker', ['priority' => 10])]
-final class ClassificationStoreKeyPresenceChecker implements RuleCheckerInterface
+final class ClassificationStoreKeyPresenceChecker implements ExplainingRuleCheckerInterface
 {
     use PresenceCheckTrait;
 
@@ -22,6 +24,7 @@ final class ClassificationStoreKeyPresenceChecker implements RuleCheckerInterfac
         private readonly int $classificationStoreId,
         private readonly ClassificationStoreKeyResolverInterface $keyResolver,
         private readonly ValidLanguageProviderInterface $languageProvider,
+        private readonly RuleProblemTranslator $problems = new RuleProblemTranslator(),
     ) {
     }
 
@@ -37,6 +40,16 @@ final class ClassificationStoreKeyPresenceChecker implements RuleCheckerInterfac
     }
 
     public function check(Concrete $object, QualityConfigurationInterface $rule): bool
+    {
+        return $this->findProblem($object, $rule) === null;
+    }
+
+    public function explain(Concrete $object, QualityConfigurationInterface $rule): ?string
+    {
+        return $this->findProblem($object, $rule);
+    }
+
+    private function findProblem(Concrete $object, QualityConfigurationInterface $rule): ?string
     {
         $targetKey = $rule->getTargetKey();
 
@@ -76,6 +89,8 @@ final class ClassificationStoreKeyPresenceChecker implements RuleCheckerInterfac
             ));
         }
 
+        $maxLength = RuleConstraints::maxLength($rule);
+
         // Classification Store values are always stored per-language internally (with a
         // "default" pseudo-language for keys nobody ever translates) — Classificationstore::
         // getLocalizedKeyValue() unconditionally falls back to the "default" bucket when a
@@ -85,28 +100,34 @@ final class ClassificationStoreKeyPresenceChecker implements RuleCheckerInterfac
         // state), while correctly requiring presence in every language for keys that genuinely
         // do carry distinct per-language values.
         foreach ($this->languageProvider->getValidLanguages() as $language) {
-            if (! $this->isPresentInAnyActiveGroup($store, $keyId, $language)) {
-                return false;
+            $value = $this->firstPresentValue($store, $keyId, $language);
+
+            if ($value === null) {
+                return $this->problems->missing($language);
+            }
+
+            if ($maxLength !== null && \is_string($value) && ($length = RuleConstraints::textLength($value)) > $maxLength) {
+                return $this->problems->tooLong($length, $maxLength, $language);
             }
         }
 
-        return true;
+        return null;
     }
 
     /**
      * The key code alone doesn't encode which group it lives in within the object's active
      * groups — try every active group and take the first non-empty value for $language.
      */
-    private function isPresentInAnyActiveGroup(Classificationstore $store, int $keyId, string $language): bool
+    private function firstPresentValue(Classificationstore $store, int $keyId, string $language): mixed
     {
         foreach (\array_keys($store->getActiveGroups()) as $groupId) {
             $value = $store->getLocalizedKeyValue((int) $groupId, $keyId, $language);
 
             if ($this->isPresent($value)) {
-                return true;
+                return $value;
             }
         }
 
-        return false;
+        return null;
     }
 }

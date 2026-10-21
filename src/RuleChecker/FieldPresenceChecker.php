@@ -6,20 +6,23 @@ namespace Portadesign\DataQualityBundle\RuleChecker;
 
 use Pimcore\Model\DataObject\Concrete;
 use Portadesign\DataQualityBundle\Contract\QualityConfigurationInterface;
-use Portadesign\DataQualityBundle\Contract\RuleCheckerInterface;
+use Portadesign\DataQualityBundle\Contract\ExplainingRuleCheckerInterface;
 use Portadesign\DataQualityBundle\Contract\ValidLanguageProviderInterface;
 use Portadesign\DataQualityBundle\Exception\RuleConfigurationException;
+use Portadesign\DataQualityBundle\Service\RuleProblemTranslator;
+use Portadesign\DataQualityBundle\Support\RuleConstraints;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 
 // Higher priority than ClassificationStoreKeyPresenceChecker: core-field names and Classification
 // Store key codes aren't expected to collide, but this is the deterministic tiebreak if they ever do.
 #[AutoconfigureTag('quality.rule_checker', ['priority' => 20])]
-final class FieldPresenceChecker implements RuleCheckerInterface
+final class FieldPresenceChecker implements ExplainingRuleCheckerInterface
 {
     use PresenceCheckTrait;
 
     public function __construct(
         private readonly ValidLanguageProviderInterface $languageProvider,
+        private readonly RuleProblemTranslator $problems = new RuleProblemTranslator(),
     ) {
     }
 
@@ -54,21 +57,42 @@ final class FieldPresenceChecker implements RuleCheckerInterface
             ));
         }
 
-        if (! $this->isLocalizedField($object, $getter)) {
-            return $this->isPresent($object->{$getter}());
-        }
+        return $this->findProblem($object, $rule, $getter) === null;
+    }
 
-        // Localized field (e.g. Product.name/description live in localizedfields): a bare
-        // getter() only reflects the current request/session locale, so a product's
-        // completeness would silently depend on which admin locale happened to be active.
-        // Require presence in every configured language instead.
-        foreach ($this->languageProvider->getValidLanguages() as $language) {
-            if (! $this->isPresent($object->{$getter}($language))) {
-                return false;
+    public function explain(Concrete $object, QualityConfigurationInterface $rule): ?string
+    {
+        return $this->findProblem($object, $rule, 'get' . \ucfirst((string) $rule->getTargetKey()));
+    }
+
+    /**
+     * Null when the value is present (and within the rule's maximum length), else what's wrong.
+     *
+     * Localized field (e.g. Product.name/description live in localizedfields): a bare getter()
+     * only reflects the current request/session locale, so a product's completeness would
+     * silently depend on which admin locale happened to be active. Require it in every
+     * configured language instead.
+     */
+    private function findProblem(Concrete $object, QualityConfigurationInterface $rule, string $getter): ?string
+    {
+        $values = $this->isLocalizedField($object, $getter)
+            ? \array_map(static fn (string $language): mixed => $object->{$getter}($language), \array_combine($this->languageProvider->getValidLanguages(), $this->languageProvider->getValidLanguages()))
+            : ['' => $object->{$getter}()];
+        $maxLength = RuleConstraints::maxLength($rule);
+
+        foreach ($values as $language => $value) {
+            $languageCode = $language !== '' ? (string) $language : null;
+
+            if (! $this->isPresent($value)) {
+                return $this->problems->missing($languageCode);
+            }
+
+            if ($maxLength !== null && \is_string($value) && ($length = RuleConstraints::textLength($value)) > $maxLength) {
+                return $this->problems->tooLong($length, $maxLength, $languageCode);
             }
         }
 
-        return true;
+        return null;
     }
 
     /**

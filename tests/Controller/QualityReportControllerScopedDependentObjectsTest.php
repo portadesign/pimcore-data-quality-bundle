@@ -8,6 +8,8 @@ use PHPUnit\Framework\TestCase;
 use Portadesign\DataQualityBundle\Contract\ClassificationStoreKeyResolverInterface;
 use Portadesign\DataQualityBundle\Controller\QualityReportController;
 use Portadesign\DataQualityBundle\Resolver\QualityConfigurationResolver;
+use Portadesign\DataQualityBundle\Resolver\QualityProfileResolver;
+use Portadesign\DataQualityBundle\Service\ProfileReadinessService;
 use Portadesign\DataQualityBundle\Service\QualityEvaluationService;
 use Portadesign\DataQualityBundle\Tests\Fixture\CreatesQualityGateEvaluator;
 use Portadesign\DataQualityBundle\Tests\Fixture\FakeCoreFieldObject;
@@ -173,6 +175,8 @@ final class QualityReportControllerScopedDependentObjectsTest extends TestCase
             'channels',
             'categories',
             $this->createGateEvaluator([], [], []),
+            $this->createStub(QualityProfileResolver::class),
+            new ProfileReadinessService($evaluationService, new NullLogger()),
         );
 
         return $controller->buildReport($product);
